@@ -335,7 +335,7 @@ a { color: inherit; text-decoration: none; }
 
 .chat-header-info { flex: 1; min-width: 0; }
 .chat-header-name { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); }
-.chat-header-status { font-size: var(--text-xs); color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; }
+.chat-header-status { font-size: var(--text-xs); color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; }
 .chat-header-status-dot { width: 6px; height: 6px; background: var(--color-primary); border-radius: 50%; }
 
 .chat-header-actions { display: flex; gap: var(--space-1); align-items: center; }
@@ -345,14 +345,29 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   transition: color var(--transition), background var(--transition);
+  position: relative;
 }
 .chat-header-btn:hover { color: var(--color-text); background: var(--color-surface-offset); }
-.chat-header-btn-reset {
-  width: auto;
-  padding: 0 var(--space-2);
-  gap: 6px;
-  font-size: var(--text-xs);
+
+.chat-header-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  font-size: 11px;
   font-weight: 500;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.chat-header-btn[data-tooltip]:hover::after {
+  opacity: 1;
 }
 
 /* ─── CHAT BODY ─── */
@@ -362,7 +377,7 @@ a { color: inherit; text-decoration: none; }
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   scroll-behavior: smooth;
 }
 
@@ -436,7 +451,7 @@ a { color: inherit; text-decoration: none; }
 
 .role-btn {
   padding: var(--space-1) var(--space-3);
-  font-size: var(--text-xs);
+  font-size: 11px;
   font-weight: 500;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
@@ -457,7 +472,7 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -490,10 +505,10 @@ a { color: inherit; text-decoration: none; }
 .message-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 
 .message-bubble {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-xl);
   font-size: var(--text-sm);
-  line-height: 1.65;
+  line-height: 1.55;
   max-width: 85%;
 }
 .message.assistant .message-bubble {
@@ -521,7 +536,7 @@ a { color: inherit; text-decoration: none; }
 .narrowing-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .narrowing-opt {
   padding: var(--space-1) var(--space-3);
-  font-size: var(--text-xs);
+  font-size: 11px;
   font-weight: 500;
   border: 1px solid var(--color-chip-border);
   border-radius: var(--radius-full);
@@ -538,7 +553,7 @@ a { color: inherit; text-decoration: none; }
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  padding: var(--space-3);
   transition: box-shadow var(--transition), border-color var(--transition);
 }
 .result-card:hover { box-shadow: var(--shadow-md); border-color: var(--color-primary); }
@@ -546,7 +561,7 @@ a { color: inherit; text-decoration: none; }
 .result-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
 .result-card-title { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); line-height: 1.3; }
 .result-card-tag {
-  font-size: var(--text-xs);
+  font-size: 11px;
   padding: 2px var(--space-2);
   border-radius: var(--radius-full);
   font-weight: 500;
@@ -562,39 +577,27 @@ a { color: inherit; text-decoration: none; }
 [data-theme="dark"] .tag-tool { background: #3b1b5c; color: #d8b4fe; }
 [data-theme="dark"] .tag-reference { background: #422006; color: #fde68a; }
 
-.result-card-desc { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.6; margin-bottom: var(--space-3); }
-.result-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.result-card-desc { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; margin-bottom: var(--space-2); }
+.result-card-footer { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
 .result-card-source { display: flex; align-items: center; gap: 4px; font-size: var(--text-xs); color: var(--color-primary); }
 .result-card-source svg { flex-shrink: 0; }
-.result-card-actions { display: flex; gap: var(--space-2); }
+.result-card-actions { display: flex; gap: var(--space-2); width: 100%; }
 .result-action-btn {
   padding: 3px var(--space-3);
-  font-size: var(--text-xs);
+  font-size: 11px;
   font-weight: 500;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   transition: all var(--transition);
+  width: 100%;
 }
 .result-action-btn.primary { background: var(--color-primary); color: white; border-color: var(--color-primary); }
 .result-action-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
 .result-action-btn.primary:hover { background: var(--color-primary-hover); color: white; }
 
-/* Fallback notice */
-.fallback-notice {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-offset);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  line-height: 1.6;
-}
-.fallback-notice-icon { flex-shrink: 0; color: var(--color-warning); }
-.fallback-links { display: flex; gap: var(--space-3); margin-top: var(--space-2); flex-wrap: wrap; }
+.fallback-links { display: flex; gap: var(--space-3); flex-wrap: wrap; }
 .fallback-link {
   font-size: var(--text-xs);
   font-weight: 500;
@@ -610,7 +613,7 @@ a { color: inherit; text-decoration: none; }
 .followup-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .followup-chip {
   padding: var(--space-1) var(--space-3);
-  font-size: var(--text-xs);
+  font-size: 11px;
   font-weight: 500;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
@@ -939,11 +942,10 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
     <div class="chat-header-actions">
-      <button type="button" class="chat-header-btn chat-header-btn-reset" onclick="resetChat()" title="Start over" aria-label="Start over">
+      <button type="button" class="chat-header-btn" onclick="resetChat()" data-tooltip="Start over" aria-label="Start over">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
         </svg>
-        <span>Start over</span>
       </button>
       <button type="button" class="chat-header-btn" onclick="toggleChat()" aria-label="Close assistant">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1004,7 +1006,7 @@ const GUIDED_PATHS = [
   { icon: '📅', text: 'Events' },
   { icon: '📰', text: 'News' },
   { icon: '📄', text: 'Research and reports' },
-  { icon: '🎓', text: 'Teaching resources / Professional development' },
+  { icon: '🎓', text: 'Teaching resources' },
   { icon: 'ℹ️', text: 'About this website' },
   { icon: '🙋', text: 'Get help' },
 ];
@@ -1165,14 +1167,11 @@ function renderAssistantResponse(data) {
       </div>`;
     }
     if(data.fallback) {
-      html += `<div class="fallback-notice">
-        <svg class="fallback-notice-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <div>
-          <div>This guidance is based on site content. Please confirm details on the source page.</div>
-          <div class="fallback-links">
-            <a class="fallback-link" href="#" target="_blank" rel="noopener">Contact support</a>
-          </div>
-        </div>
+      html += `<div class="fallback-links" style="margin-top:var(--space-1)">
+        <a class="fallback-link" href="#" target="_blank" rel="noopener">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Contact support
+        </a>
       </div>`;
     }
     html += `<div class="guided-paths-return">
@@ -1269,7 +1268,6 @@ function getResponse(q) {
         { title: 'News and stories', type: 'tool', label: 'News', desc: 'Browse updates and stories about digital education in Hong Kong and related developments.', source: 'News → Latest', actions: ['News on digital education', 'Research papers and reports'] },
         { title: 'Resources for teachers', type: 'training', label: 'Resources', desc: 'Find teaching resources and professional development opportunities for schools and educators.', source: 'Resources → Teacher support', actions: ['Teaching resources and professional development', 'About Digital Education @ HKEdCity'] },
       ],
-      fallback: true,
       followups: ['Digital Education Week 2026', 'News on digital education', 'Research papers and reports', 'About Digital Education @ HKEdCity']
     };
   }
@@ -1281,7 +1279,6 @@ function getResponse(q) {
         { title: 'Learning & Teaching Expo (LTE) 2026', type: 'event', label: 'Event', desc: 'Find expo information, programme highlights, and related event content for visitors and educators.', source: 'Events → LTE 2026', actions: ['View event details', 'AIinLT 2026 summit'] },
         { title: 'AIinLT 2026 summit', type: 'event', label: 'Event', desc: 'Explore the summit on the use of AI in language learning and teaching.', source: 'Events → AIinLT 2026', actions: ['View event details', 'Browse all events'] },
       ],
-      fallback: true,
       followups: ['Learning & Teaching Expo (LTE) 2026', 'AIinLT 2026 summit', 'News on digital education']
     };
   }
@@ -1292,18 +1289,16 @@ function getResponse(q) {
         { title: 'Learning & Teaching Expo (LTE) 2026', type: 'event', label: 'Event', desc: 'Start with the main expo page for programme information, highlights, and visitor-facing content.', source: 'Events → LTE 2026', actions: ['View event details', 'Digital Education Week 2026'] },
         { title: 'Related event context', type: 'event', label: 'Event', desc: 'See how LTE 2026 connects with the broader Digital Education Week programme.', source: 'Events → DEW 2026', actions: ['Digital Education Week 2026', 'Browse all events'] },
       ],
-      fallback: true,
       followups: ['AIinLT 2026 summit', 'Digital Education Week 2026', 'What does this website cover?']
     };
   }
   if(q.includes('aiinlt') || q.includes('ai summit') || q.includes('language learning') || q.includes('summit')) {
     return {
-      summary: `The <strong>AIinLT 2026 summit</strong> is one of the site’s key event pathways for people interested in AI in language learning and teaching.`,
+      summary: `The <strong>AIinLT 2026 summit</strong> is one of the site's key event pathways for people interested in AI in language learning and teaching.`,
       cards: [
         { title: 'AIinLT 2026 summit', type: 'event', label: 'Event', desc: 'Find summit details, practical sessions, and related information on AI in language education.', source: 'Events → AIinLT 2026', actions: ['View event details', 'Digital Education Week 2026'] },
         { title: 'Connected flagship events', type: 'event', label: 'Event', desc: 'Explore how the summit sits within the broader Digital Education Week experience.', source: 'Events → DEW 2026', actions: ['Digital Education Week 2026', 'Learning & Teaching Expo (LTE) 2026'] },
       ],
-      fallback: true,
       followups: ['Learning & Teaching Expo (LTE) 2026', 'News on digital education', 'Research papers and reports']
     };
   }
@@ -1314,7 +1309,6 @@ function getResponse(q) {
         { title: 'News on digital education', type: 'tool', label: 'News', desc: 'Browse updates, stories, and highlights related to digital education initiatives and developments.', source: 'News → Latest', actions: ['Open latest news', 'Research papers and reports'] },
         { title: 'Featured article pathways', type: 'tool', label: 'News', desc: 'Find articles connected to major themes such as AI in education and Digital Education Week.', source: 'News → Featured', actions: ['Digital Education Week 2026', 'About Digital Education @ HKEdCity'] },
       ],
-      fallback: true,
       followups: ['Research papers and reports', 'About Digital Education @ HKEdCity', 'Teaching resources and professional development']
     };
   }
@@ -1325,7 +1319,6 @@ function getResponse(q) {
         { title: 'Research papers and reports', type: 'reference', label: 'Research', desc: 'Browse research-oriented content, reports, and related knowledge resources connected to digital education.', source: 'Research → Overview', actions: ['Open research', 'News on digital education'] },
         { title: 'Policy and digital education themes', type: 'reference', label: 'Research', desc: 'Explore broader policy, implementation, and innovation themes across digital education topics.', source: 'Research → Themes', actions: ['Open research', 'About Digital Education @ HKEdCity'] },
       ],
-      fallback: true,
       followups: ['News on digital education', 'Teaching resources and professional development', 'What does this website cover?']
     };
   }
@@ -1336,7 +1329,6 @@ function getResponse(q) {
         { title: 'Teaching resources', type: 'training', label: 'Resources', desc: 'Find practical materials, links, and teaching-oriented content for classroom use.', source: 'Resources → Teaching', actions: ['Open resources', 'Professional development'] },
         { title: 'Professional development', type: 'training', label: 'Professional development', desc: 'Explore learning opportunities, programmes, or related support for teacher development.', source: 'Resources → Professional development', actions: ['Open development', 'Teaching resources'] },
       ],
-      fallback: true,
       followups: ['News on digital education', 'Research papers and reports', 'About Digital Education @ HKEdCity']
     };
   }
@@ -1350,19 +1342,17 @@ function getResponse(q) {
   }
   if(q.includes('about') || q.includes('hkedcity') || q.includes('organisation')) {
     return {
-      summary: `Here is the best place to start if you want to understand <strong>Digital Education @ HKEdCity</strong> and how it relates to the site’s content and initiatives.`,
+      summary: `Here is the best place to start if you want to understand <strong>Digital Education @ HKEdCity</strong> and how it relates to the site's content and initiatives.`,
       cards: [
-        { title: 'About Digital Education @ HKEdCity', type: 'tool', label: 'About', desc: 'Learn about the organisation context, the site’s purpose, and how its events and content fit together.', source: 'About → Overview', actions: ['Open about page', 'What does this website cover?'] },
+        { title: 'About Digital Education @ HKEdCity', type: 'tool', label: 'About', desc: "Learn about the organisation context, the site's purpose, and how its events and content fit together.", source: 'About → Overview', actions: ['Open about page', 'What does this website cover?'] },
       ],
-      fallback: true,
       followups: ['Digital Education Week 2026', 'News on digital education', 'Teaching resources and professional development']
     };
   }
   return {
-    summary: `I’m here to guide you through the main parts of this website. Choose a guided path below and I’ll take you to the most relevant section.`,
+    summary: `I'm here to guide you through the main parts of this website. Choose a guided path below and I'll take you to the most relevant section.`,
     cards: [],
     lowConfidence: true,
-    fallback: true,
     followups: ['What does this website cover?']
   };
 }
