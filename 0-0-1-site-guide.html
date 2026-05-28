@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Guide v1 — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:              #f7f6f2;
+  --surface:         #ffffff;
+  --surface-2:       #f3f1ed;
+  --border:          rgba(0,0,0,0.09);
+  --text:            #1a1917;
+  --text-muted:      #6b6a67;
+  --text-faint:      #a8a7a4;
+  --primary:         #01696f;
+  --primary-bg:      #e8f2f1;
+  --primary-hover:   #0c4e54;
+  --chip-bg:         #ffffff;
+  --chip-border:     rgba(0,0,0,0.12);
+  --chip-hover:      #f0f7f6;
+  --card-bg:         #ffffff;
+  --fallback-bg:     #fdf8f3;
+  --fallback-border: rgba(1,105,111,0.18);
+  --shadow-sm:       0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md:       0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:       0 12px 40px rgba(0,0,0,0.13);
+  --radius-sm:       6px;
+  --radius-md:       10px;
+  --radius-lg:       16px;
+  --radius-full:     9999px;
+  --font-body:       'DM Sans', sans-serif;
+  --font-display:    'DM Serif Display', serif;
+  --t:               180ms cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--font-body); font-size:15px; color:var(--text); background:var(--bg); -webkit-font-smoothing:antialiased; }
+button { cursor:pointer; border:none; background:none; font:inherit; color:inherit; }
+a { color:var(--primary); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* ── Portal bar ── */
+.portal-bar {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:0 24px; height:52px; display:flex; align-items:center;
+  justify-content:space-between; position:sticky; top:0; z-index:10;
+}
+.portal-logo { font-family:var(--font-display); font-size:16px; color:var(--text); }
+.portal-logo span { color:var(--primary); }
+.portal-nav { display:flex; gap:24px; }
+.portal-nav a { font-size:13px; color:var(--text-muted); transition:color var(--t); }
+.portal-nav a:hover { color:var(--text); text-decoration:none; }
+
+/* ── Page ── */
+.page { max-width:960px; margin:0 auto; padding:40px 24px 120px; }
+.page-heading { font-family:var(--font-display); font-size:28px; margin-bottom:8px; }
+.page-sub { font-size:14px; color:var(--text-muted); line-height:1.6; max-width:64ch; margin-bottom:24px; }
+.content-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; margin-bottom:32px; }
+.content-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; display:flex; flex-direction:column; gap:6px; box-shadow:var(--shadow-sm); }
+.content-card-tag { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--primary); }
+.content-card-title { font-size:14px; font-weight:600; }
+.content-card-desc { font-size:12px; color:var(--text-muted); line-height:1.5; }
+.embedded-module { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; box-shadow:var(--shadow-sm); }
+.embedded-left { display:flex; flex-direction:column; gap:4px; }
+.embedded-title { font-size:14px; font-weight:600; }
+.embedded-sub { font-size:12px; color:var(--text-muted); }
+.embedded-btn { padding:8px 16px; border-radius:var(--radius-full); background:var(--primary-bg); color:var(--primary); font-size:13px; font-weight:500; white-space:nowrap; transition:background var(--t); }
+.embedded-btn:hover { background:#d5e8e7; }
+
+/* ── Launcher ── */
+.launcher {
+  position:fixed; bottom:28px; right:28px; z-index:100;
+  width:52px; height:52px; border-radius:var(--radius-full);
+  background:var(--primary); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow-lg);
+  transition:background var(--t), transform var(--t);
+}
+.launcher:hover { background:var(--primary-hover); transform:scale(1.05); }
+.launcher svg.icon-close { display:none; }
+.launcher.open svg.icon-chat { display:none; }
+.launcher.open svg.icon-close { display:block; }
+
+/* ── Panel ── */
+.panel {
+  position:fixed; bottom:92px; right:28px;
+  width:390px; height:600px;
+  background:var(--surface); border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg); border:1px solid var(--border);
+  display:flex; flex-direction:column; overflow:hidden;
+  opacity:0; transform:translateY(14px) scale(0.97);
+  pointer-events:none;
+  transition:opacity 220ms ease, transform 220ms ease;
+  z-index:99;
+}
+.panel.open { opacity:1; transform:translateY(0) scale(1); pointer-events:all; }
+
+/* Panel header */
+.panel-header {
+  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.panel-header-left { display:flex; align-items:center; gap:8px; }
+.panel-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); flex-shrink:0; }
+.panel-title { font-size:13px; font-weight:600; }
+.panel-scope { font-size:11px; color:var(--text-faint); margin-top:1px; }
+.panel-reset { font-size:11px; color:var(--text-muted); padding:4px 8px; border-radius:var(--radius-sm); transition:background var(--t), color var(--t); }
+.panel-reset:hover { background:var(--surface-2); color:var(--text); }
+
+/* Scroll body */
+.panel-body {
+  flex:1; overflow-y:auto; padding:16px;
+  display:flex; flex-direction:column; gap:14px;
+  scroll-behavior:smooth;
+}
+.panel-body::-webkit-scrollbar { width:4px; }
+.panel-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+/* ── Input bar — persistent at bottom ── */
+.panel-input-bar {
+  border-top:1px solid var(--border);
+  padding:10px 12px;
+  display:flex; align-items:flex-end; gap:8px;
+  flex-shrink:0;
+  background:var(--surface);
+}
+.panel-input {
+  flex:1; min-height:36px; max-height:100px;
+  padding:8px 12px;
+  border:1px solid var(--chip-border);
+  border-radius:var(--radius-md);
+  font:inherit; font-size:13px; color:var(--text);
+  background:var(--surface-2);
+  resize:none; outline:none; line-height:1.45;
+  overflow-y:auto;
+  transition:border-color var(--t), box-shadow var(--t);
+}
+.panel-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(1,105,111,0.1); }
+.panel-input::placeholder { color:var(--text-faint); }
+.panel-send {
+  width:36px; height:36px; border-radius:var(--radius-md);
+  background:var(--primary); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  transition:background var(--t), opacity var(--t);
+  opacity:0.45;
+}
+.panel-send.ready { opacity:1; }
+.panel-send:hover.ready { background:var(--primary-hover); }
+
+/* ── Welcome ── */
+.welcome-heading { font-size:17px; font-weight:600; line-height:1.3; }
+.welcome-sub { font-size:13px; color:var(--text-muted); margin-top:4px; line-height:1.5; }
+
+/* ── Chips ── */
+.chips { display:flex; flex-wrap:wrap; gap:7px; }
+.chip {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 12px; border-radius:var(--radius-full);
+  border:1px solid var(--chip-border); background:var(--chip-bg);
+  font-size:13px; font-weight:500; color:var(--text);
+  transition:background var(--t), border-color var(--t), transform var(--t), box-shadow var(--t);
+  box-shadow:var(--shadow-sm);
+}
+.chip:hover { background:var(--chip-hover); border-color:var(--primary); transform:translateY(-1px); box-shadow:0 3px 10px rgba(1,105,111,0.12); }
+.chip .chip-icon { font-size:14px; line-height:1; }
+
+/* ── Messages ── */
+.msg { display:flex; flex-direction:column; gap:3px; animation:fadeUp 180ms ease both; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+.msg-label { font-size:11px; color:var(--text-faint); font-weight:500; letter-spacing:.02em; padding-left:2px; }
+.msg-label.user { text-align:right; padding-right:2px; }
+.bubble {
+  background:var(--surface-2); border-radius:var(--radius-md);
+  padding:11px 13px; font-size:13px; line-height:1.55; color:var(--text);
+}
+.bubble p { margin-bottom:5px; }
+.bubble p:last-child { margin-bottom:0; }
+.bubble-user {
+  background:var(--primary); color:#fff;
+  align-self:flex-end;
+  border-radius:var(--radius-md) var(--radius-md) 4px var(--radius-md);
+  max-width:82%;
+}
+.msg.is-user { align-items:flex-end; }
+
+/* ── Result cards ── */
+.cards { display:flex; flex-direction:column; gap:8px; }
+.result-card {
+  background:var(--card-bg); border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:12px 13px; display:flex; flex-direction:column; gap:3px;
+  transition:box-shadow var(--t), transform var(--t), border-color var(--t);
+  box-shadow:var(--shadow-sm);
+}
+.result-card:hover { box-shadow:var(--shadow-md); transform:translateY(-1px); border-color:rgba(1,105,111,0.2); }
+.card-tag { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--primary); }
+.card-title { font-size:13px; font-weight:600; line-height:1.3; }
+.card-desc { font-size:12px; color:var(--text-muted); line-height:1.45; margin-top:1px; }
+.card-meta { font-size:11px; color:var(--text-faint); }
+.card-link { font-size:12px; font-weight:500; color:var(--primary); margin-top:4px; display:inline-flex; align-items:center; gap:3px; }
+.card-link:hover { text-decoration:underline; }
+
+/* ── Actions ── */
+.actions { display:flex; flex-direction:column; gap:7px; }
+.action-primary {
+  display:flex; align-items:center; justify-content:center;
+  padding:9px 16px; border-radius:var(--radius-full);
+  background:var(--primary); color:#fff; font-size:13px; font-weight:500;
+  transition:background var(--t); text-align:center;
+}
+.action-primary:hover { background:var(--primary-hover); text-decoration:none; color:#fff; }
+.action-secondary {
+  display:flex; align-items:center; justify-content:center;
+  padding:9px 16px; border-radius:var(--radius-full);
+  background:transparent; border:1px solid var(--chip-border);
+  color:var(--text-muted); font-size:13px; font-weight:500;
+  transition:background var(--t), border-color var(--t), color var(--t); text-align:center;
+}
+.action-secondary:hover { background:var(--surface-2); color:var(--text); border-color:var(--text-muted); text-decoration:none; }
+
+/* ── Fallback ── */
+.fallback {
+  background:var(--fallback-bg); border:1px solid var(--fallback-border);
+  border-radius:var(--radius-md); padding:11px 13px;
+  font-size:12px; color:var(--text-muted); line-height:1.55;
+}
+.fallback a { color:var(--primary); font-weight:500; }
+
+/* ── Clarify ── */
+.clarify-chips { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.clarify-chip {
+  padding:9px 13px; border-radius:var(--radius-md);
+  border:1px solid var(--chip-border); background:var(--chip-bg);
+  font-size:13px; font-weight:500; color:var(--text); text-align:left;
+  transition:background var(--t), border-color var(--t), transform var(--t);
+  box-shadow:var(--shadow-sm);
+}
+.clarify-chip:hover { background:var(--chip-hover); border-color:var(--primary); transform:translateX(2px); }
+
+/* ── Divider ── */
+.divider { height:1px; background:var(--border); }
+
+/* ── Out-of-scope notice ── */
+.out-of-scope {
+  background:var(--surface-2); border-radius:var(--radius-md);
+  padding:11px 13px; font-size:13px; color:var(--text-muted); line-height:1.5;
+}
+
+/* ── Mobile ── */
+@media (max-width:480px) {
+  .panel { width:calc(100vw - 16px); right:8px; bottom:76px; height:78dvh; }
+  .launcher { right:14px; bottom:14px; }
+  .portal-nav { display:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Portal bar -->
+<nav class="portal-bar">
+  <div class="portal-logo">Digital Education <span>@ HKEdCity</span></div>
+  <div class="portal-nav">
+    <a href="#events-landing">Events</a>
+    <a href="#news-landing">News</a>
+    <a href="#research-landing">Research</a>
+    <a href="#teaching-landing">Teaching</a>
+    <a href="#about-landing">About</a>
+  </div>
+</nav>
+
+<!-- Page content -->
+<div class="page">
+  <h1 class="page-heading">Welcome</h1>
+  <p class="page-sub">Explore events, news, research, and teaching resources from Hong Kong's digital education hub. Use the site guide in the bottom-right corner to find what you need quickly.</p>
+  <div class="content-grid">
+    <div class="content-card">
+      <div class="content-card-tag">Event</div>
+      <div class="content-card-title">AI in the Classroom 2026</div>
+      <div class="content-card-desc">Annual forum for educators exploring practical AI integration in teaching and learning.</div>
+    </div>
+    <div class="content-card">
+      <div class="content-card-tag">Research</div>
+      <div class="content-card-title">Digital Literacy Report 2025</div>
+      <div class="content-card-desc">Findings from a territory-wide study on student digital competency across key stages.</div>
+    </div>
+    <div class="content-card">
+      <div class="content-card-tag">News</div>
+      <div class="content-card-title">New STEM resources now live</div>
+      <div class="content-card-desc">Updated curriculum-aligned STEM tools are available for all registered educators.</div>
+    </div>
+  </div>
+  <div class="embedded-module">
+    <div class="embedded-left">
+      <div class="embedded-title">Not sure where to start?</div>
+      <div class="embedded-sub">The site guide can help you find events, resources, and research.</div>
+    </div>
+    <button class="embedded-btn" onclick="openPanel()">Open site guide</button>
+  </div>
+</div>
+
+<!-- Launcher -->
+<button class="launcher" id="launcher" onclick="togglePanel()" aria-label="Open site guide">
+  <svg class="icon-chat" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  <svg class="icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+
+<!-- Panel -->
+<div class="panel" id="panel">
+
+  <!-- Header -->
+  <div class="panel-header">
+    <div class="panel-header-left">
+      <div class="panel-dot"></div>
+      <div>
+        <div class="panel-title">Site guide</div>
+        <div class="panel-scope">Helps you find pages and resources on this website</div>
+      </div>
+    </div>
+    <button class="panel-reset" id="resetBtn" onclick="resetGuide()" style="display:none">↺ Start over</button>
+  </div>
+
+  <!-- Scroll body -->
+  <div class="panel-body" id="panelBody"></div>
+
+  <!-- Persistent input bar -->
+  <div class="panel-input-bar">
+    <textarea
+      class="panel-input"
+      id="panelInput"
+      rows="1"
+      placeholder="Ask about events, news, teaching resources…"
+      aria-label="Type your question"
+    ></textarea>
+    <button class="panel-send" id="sendBtn" aria-label="Send" onclick="handleSend()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let isOpen = false;
+let currentPath = null;
+
+// ── Panel toggle ──
+function togglePanel() { isOpen ? closePanel() : openPanel(); }
+function openPanel() {
+  isOpen = true;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('launcher').classList.add('open');
+  if (!currentPath) showWelcome();
+  setTimeout(() => document.getElementById('panelInput').focus(), 250);
+}
+function closePanel() {
+  isOpen = false;
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('launcher').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) closePanel(); });
+
+function resetGuide() {
+  currentPath = null;
+  document.getElementById('resetBtn').style.display = 'none';
+  showWelcome();
+}
+
+// ── Input auto-grow + send button state ──
+const inputEl = document.getElementById('panelInput');
+const sendBtn = document.getElementById('sendBtn');
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+  sendBtn.classList.toggle('ready', inputEl.value.trim().length > 0);
+});
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+});
+
+function handleSend() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.classList.remove('ready');
+  processText(text);
+}
+
+// ── Intent classifier ──
+const INTENTS = [
+  { key: 'events',   patterns: ['event','events','forum','seminar','conference','upcoming','activity','activities','workshop'] },
+  { key: 'news',     patterns: ['news','announcement','update','what\'s new','latest','new','bulletin'] },
+  { key: 'research', patterns: ['research','report','publication','paper','findings','study','survey','data'] },
+  { key: 'teaching', patterns: ['teach','teaching','teacher','resource','lesson','curriculum','subject','professional development','pd','training','course','certificate','stem','elearning','e-learning','tool','tools'] },
+  { key: 'about',    patterns: ['about','what is','overview','who','hkedcity','edcity','what does','what do you','tell me'] },
+  { key: 'help',     patterns: ['help','stuck','confused','can\'t find','cannot find','lost','support','contact','where','how do i','how to'] },
+];
+
+function classify(text) {
+  const lower = text.toLowerCase();
+  for (const intent of INTENTS) {
+    if (intent.patterns.some(p => lower.includes(p))) return intent.key;
+  }
+  return null;
+}
+
+function processText(text) {
+  userMsg(text);
+  const intent = classify(text);
+  currentPath = intent;
+  if (intent) {
+    document.getElementById('resetBtn').style.display = '';
+    switch (intent) {
+      case 'events':   return pathEvents();
+      case 'news':     return pathNews();
+      case 'research': return pathResearch();
+      case 'teaching': return pathTeaching();
+      case 'about':    return pathAbout();
+      case 'help':     return pathHelp();
+    }
+  } else {
+    pathOutOfScope(text);
+  }
+}
+
+// ── Render helpers ──
+const body = () => document.getElementById('panelBody');
+function scrollBottom() { const b = body(); b.scrollTop = b.scrollHeight; }
+function append(el) { body().appendChild(el); scrollBottom(); }
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function userMsg(text) {
+  const wrap = el('div', 'msg is-user');
+  wrap.appendChild(el('div', 'msg-label user', 'You'));
+  const bub = el('div', 'bubble bubble-user');
+  bub.textContent = text;
+  wrap.appendChild(bub);
+  append(wrap);
+}
+
+function assistantMsg(html) {
+  const wrap = el('div', 'msg');
+  wrap.appendChild(el('div', 'msg-label', 'Site guide'));
+  wrap.appendChild(el('div', 'bubble', html));
+  append(wrap);
+}
+
+function chips(items, onClick) {
+  const wrap = el('div', 'chips');
+  items.forEach(item => {
+    const b = el('button', 'chip');
+    b.innerHTML = `<span class="chip-icon">${item.icon}</span>${item.label}`;
+    b.onclick = () => { b.disabled = true; wrap.querySelectorAll('.chip').forEach(c => c.style.opacity = '0.4'); onClick(item); };
+    wrap.appendChild(b);
+  });
+  append(wrap);
+}
+
+function cards(items) {
+  const wrap = el('div', 'cards');
+  items.forEach(c => {
+    const card = el('div', 'result-card');
+    card.innerHTML = `
+      ${c.tag ? `<div class="card-tag">${c.tag}</div>` : ''}
+      <div class="card-title">${c.title}</div>
+      ${c.desc ? `<div class="card-desc">${c.desc}</div>` : ''}
+      ${c.meta ? `<div class="card-meta">${c.meta}</div>` : ''}
+      <a class="card-link" href="${c.url}" target="_blank" rel="noopener noreferrer">View page →</a>`;
+    wrap.appendChild(card);
+  });
+  append(wrap);
+}
+
+function actions(primary, secondaries = []) {
+  const wrap = el('div', 'actions');
+  const a = el('a', 'action-primary', primary.label);
+  a.href = primary.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+  wrap.appendChild(a);
+  secondaries.forEach(s => {
+    const b = el('a', 'action-secondary', s.label);
+    b.href = s.url; b.target = '_blank'; b.rel = 'noopener noreferrer';
+    wrap.appendChild(b);
+  });
+  append(wrap);
+}
+
+function fallback(html) {
+  append(el('div', 'fallback', html));
+}
+
+function clarify(question, options, onSelect) {
+  const wrap = el('div', 'msg');
+  wrap.appendChild(el('div', 'msg-label', 'Site guide'));
+  const bub = el('div', 'bubble');
+  bub.appendChild(el('p', null, question));
+  const cc = el('div', 'clarify-chips');
+  options.forEach(opt => {
+    const b = el('button', 'clarify-chip', opt.label);
+    b.onclick = () => {
+      cc.querySelectorAll('.clarify-chip').forEach(c => { c.disabled = true; c.style.opacity = '0.4'; });
+      b.style.opacity = '1'; b.style.borderColor = 'var(--primary)'; b.style.background = 'var(--chip-hover)';
+      userMsg(opt.label);
+      onSelect(opt);
+    };
+    cc.appendChild(b);
+  });
+  bub.appendChild(cc);
+  wrap.appendChild(bub);
+  append(wrap);
+}
+
+function divider() { append(el('div', 'divider')); }
+function showReset() { document.getElementById('resetBtn').style.display = ''; }
+
+// ── Welcome state ──
+function showWelcome() {
+  body().innerHTML = '';
+  const heading = el('div');
+  heading.innerHTML = `<div class="welcome-heading">What are you looking for today?</div><div class="welcome-sub" style="margin-top:4px">This guide helps you find pages and resources on the website.</div>`;
+  append(heading);
+  chips([
+    { icon: '📅', label: 'Events' },
+    { icon: '📰', label: 'News' },
+    { icon: '📄', label: 'Research and reports' },
+    { icon: '🎓', label: 'Teaching resources / Professional development' },
+    { icon: 'ℹ️',  label: 'About this website' },
+    { icon: '🙋', label: 'Get help' },
+  ], item => {
+    currentPath = item.label;
+    showReset();
+    userMsg(item.label);
+    switch (item.label) {
+      case 'Events': return pathEvents();
+      case 'News': return pathNews();
+      case 'Research and reports': return pathResearch();
+      case 'Teaching resources / Professional development': return pathTeaching();
+      case 'About this website': return pathAbout();
+      case 'Get help': return pathHelp();
+    }
+  });
+}
+
+// ── Paths ──
+
+function pathEvents() {
+  assistantMsg(`<p>Here are current event pages and upcoming activities.</p>`);
+  cards([
+    { tag: 'Upcoming event', title: 'AI in the Classroom Forum 2026', desc: 'Annual forum on practical AI integration for Hong Kong educators.', meta: '12 Jun 2026', url: '#placeholder-events-ai-forum' },
+    { tag: 'Upcoming event', title: 'STEM Education Showcase', desc: 'Cross-school exhibition of student STEM projects and innovations.', meta: '28 Jun 2026', url: '#placeholder-events-stem-showcase' },
+    { tag: 'Upcoming event', title: 'Digital Wellbeing Seminar', desc: 'Professional development seminar on healthy technology habits in schools.', meta: '5 Jul 2026', url: '#placeholder-events-digital-wellbeing' },
+  ]);
+  divider();
+  actions(
+    { label: 'Browse all events', url: '#placeholder-events-landing' },
+    [{ label: 'Contact support', url: '#placeholder-contact-support' }]
+  );
+}
+
+function pathNews() {
+  assistantMsg(`<p>Here are recent updates from the site.</p>`);
+  cards([
+    { tag: 'News', title: 'New STEM resources now live', desc: 'Updated curriculum-aligned tools available for all registered educators.', meta: '22 May 2026', url: '#placeholder-news-stem-resources' },
+    { tag: 'Announcement', title: 'Digital Literacy Framework updated', desc: 'The 2026 revision reflects new guidance on AI literacy across all key stages.', meta: '14 May 2026', url: '#placeholder-news-digital-literacy-framework' },
+    { tag: 'News', title: 'EdTech Grant results announced', desc: 'Find out which schools received funding under the 2025–26 EdTech Grant Scheme.', meta: '2 May 2026', url: '#placeholder-news-edtech-grant' },
+  ]);
+  divider();
+  actions(
+    { label: 'Browse all news', url: '#placeholder-news-landing' },
+    [{ label: 'Get help', url: '#placeholder-contact-support' }]
+  );
+}
+
+function pathResearch() {
+  clarify(
+    'Are you looking for a subject area or a specific publication?',
+    [
+      { label: '📚 Browse by subject area', key: 'subject' },
+      { label: '🔍 Find a specific publication', key: 'publication' },
+      { label: '📋 Show me everything', key: 'all' },
+    ],
+    () => {
+      assistantMsg(`<p>Here are research papers and reports you can explore.</p>`);
+      cards([
+        { tag: 'Report', title: 'Digital Literacy in Hong Kong Schools 2025', desc: 'Territory-wide findings on student digital competency across key stages 1–4.', url: '#placeholder-research-digital-literacy-2025' },
+        { tag: 'Research', title: 'AI Readiness in Secondary Education', desc: 'Survey of teacher confidence and school infrastructure for AI-integrated teaching.', url: '#placeholder-research-ai-readiness' },
+        { tag: 'Publication', title: 'STEM Curriculum Review: Findings and Recommendations', desc: 'Analysis of STEM outcomes from 120 participating schools, 2022–2024.', url: '#placeholder-research-stem-review' },
+      ]);
+      divider();
+      actions(
+        { label: 'Browse all research and reports', url: '#placeholder-research-landing' },
+        [{ label: 'Get help', url: '#placeholder-contact-support' }]
+      );
+    }
+  );
+}
+
+function pathTeaching() {
+  clarify(
+    'Which would you like to explore first?',
+    [
+      { label: '📖 Teaching resources', key: 'resources' },
+      { label: '🏅 Professional development', key: 'pd' },
+    ],
+    opt => {
+      if (opt.key === 'resources') {
+        assistantMsg(`<p>Here are teaching resources you can explore. You can narrow by subject or browse all.</p>`);
+        cards([
+          { tag: 'Teaching resource', title: 'e-Learning Resource Library', desc: 'Curriculum-aligned digital resources across core subjects for primary and secondary.', url: '#placeholder-teaching-elearning-library' },
+          { tag: 'Teaching resource', title: 'STEM Activity Packs', desc: 'Ready-to-use activity packs with student worksheets and teacher guides.', url: '#placeholder-teaching-stem-packs' },
+          { tag: 'Teaching resource', title: 'Digital Storytelling Toolkit', desc: 'Tools and templates for integrating digital storytelling across subjects.', url: '#placeholder-teaching-storytelling-toolkit' },
+        ]);
+        divider();
+        chips([
+          { icon: '🔢', label: 'By subject' },
+          { icon: '👩‍🏫', label: 'For teachers' },
+          { icon: '📂', label: 'Browse all' },
+        ], sub => {
+          userMsg(sub.label);
+          actions(
+            { label: 'Browse teaching resources', url: '#placeholder-teaching-resources-landing' },
+            [{ label: 'Contact support', url: '#placeholder-contact-support' }]
+          );
+        });
+        actions(
+          { label: 'Browse teaching resources', url: '#placeholder-teaching-resources-landing' },
+          [{ label: 'Contact support', url: '#placeholder-contact-support' }]
+        );
+      } else {
+        assistantMsg(`<p>Here are professional development opportunities available on the site.</p>`);
+        cards([
+          { tag: 'Professional development', title: 'Certificate in e-Learning Design', desc: 'Structured online programme for educators developing digital learning experiences.', url: '#placeholder-pd-elearning-design' },
+          { tag: 'Professional development', title: 'AI Integration for Teachers', desc: 'Short course on applying AI tools responsibly in classroom planning and assessment.', url: '#placeholder-pd-ai-integration' },
+          { tag: 'Professional development', title: 'STEM Leadership Programme', desc: 'School-based leadership training for STEM co-ordinators and heads of department.', url: '#placeholder-pd-stem-leadership' },
+        ]);
+        divider();
+        actions(
+          { label: 'Browse professional development', url: '#placeholder-pd-landing' },
+          [{ label: 'Contact support', url: '#placeholder-contact-support' }]
+        );
+      }
+    }
+  );
+}
+
+function pathAbout() {
+  assistantMsg(`<p>This website is run by Hong Kong Education City (HKEdCity) and supports digital education across Hong Kong schools.</p><p>Here are the main areas you can explore:</p>`);
+  cards([
+    { tag: 'Events', title: 'Upcoming events and forums', desc: 'Conferences, seminars, and activities for educators and school leaders.', url: '#placeholder-events-landing' },
+    { tag: 'News', title: 'Latest news and announcements', desc: 'Updates, policy news, and new resource launches.', url: '#placeholder-news-landing' },
+    { tag: 'Research', title: 'Research and reports', desc: 'Published findings, surveys, and digital education research.', url: '#placeholder-research-landing' },
+    { tag: 'Teaching', title: 'Teaching resources and professional development', desc: 'Curriculum-aligned resources and training programmes for teachers.', url: '#placeholder-teaching-landing' },
+  ]);
+  divider();
+  actions(
+    { label: 'Explore the website', url: '#placeholder-site-home' },
+    [{ label: 'Get help', url: '#placeholder-contact-support' }]
+  );
+}
+
+function pathHelp() {
+  assistantMsg(`<p>Here are ways to find what you need or get in touch with the team.</p>`);
+  fallback(`<strong>Can't find what you're looking for?</strong> <a href="#placeholder-contact-support" target="_blank">Contact support</a> or <a href="#placeholder-sitemap" target="_blank">browse the full site map</a>.`);
+  divider();
+  chips([
+    { icon: '📅', label: 'Events' },
+    { icon: '📰', label: 'News' },
+    { icon: '📄', label: 'Research and reports' },
+    { icon: '🎓', label: 'Teaching resources / Professional development' },
+    { icon: 'ℹ️',  label: 'About this website' },
+  ], item => {
+    currentPath = item.label;
+    userMsg(item.label);
+    switch (item.label) {
+      case 'Events': return pathEvents();
+      case 'News': return pathNews();
+      case 'Research and reports': return pathResearch();
+      case 'Teaching resources / Professional development': return pathTeaching();
+      case 'About this website': return pathAbout();
+    }
+  });
+  actions(
+    { label: 'Contact support', url: '#placeholder-contact-support' },
+    [{ label: 'Browse all results', url: '#placeholder-sitemap' }]
+  );
+}
+
+function pathOutOfScope(text) {
+  assistantMsg(`<p>I couldn't confidently match "<strong>${text}</strong>" to a section on this website.</p><p>Here are the main areas I can help with — or you can contact support for anything else.</p>`);
+  chips([
+    { icon: '📅', label: 'Events' },
+    { icon: '📰', label: 'News' },
+    { icon: '📄', label: 'Research and reports' },
+    { icon: '🎓', label: 'Teaching resources / Professional development' },
+    { icon: 'ℹ️',  label: 'About this website' },
+    { icon: '🙋', label: 'Get help' },
+  ], item => {
+    currentPath = item.label;
+    showReset();
+    userMsg(item.label);
+    switch (item.label) {
+      case 'Events': return pathEvents();
+      case 'News': return pathNews();
+      case 'Research and reports': return pathResearch();
+      case 'Teaching resources / Professional development': return pathTeaching();
+      case 'About this website': return pathAbout();
+      case 'Get help': return pathHelp();
+    }
+  });
+  actions(
+    { label: 'Contact support', url: '#placeholder-contact-support' },
+    [{ label: 'Browse all results', url: '#placeholder-sitemap' }]
+  );
+}
+
+// ── Init ──
+showWelcome();
+</script>
+</body>
+</html>
