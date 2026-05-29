@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Education Platform Homepage Wireframe</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --font-body: 'General Sans', Inter, sans-serif;
+      --font-display: 'General Sans', Inter, sans-serif;
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+      --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem;
+      --color-bg: #f7f6f2;
+      --color-surface: #f9f8f5;
+      --color-surface-2: #fbfbf9;
+      --color-surface-offset: #f3f0ec;
+      --color-border: rgba(40,37,29,0.12);
+      --color-text: #28251d;
+      --color-text-muted: #6d6a63;
+      --color-text-faint: #9c9992;
+      --color-primary: #01696f;
+      --color-primary-hover: #0c4e54;
+      --color-primary-highlight: #d7e8e6;
+      --color-chip: #e9f1f1;
+      --shadow-sm: 0 1px 2px rgba(40,37,29,0.06);
+      --shadow-md: 0 6px 18px rgba(40,37,29,0.08);
+      --radius-sm: 0.375rem; --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-full: 9999px;
+      --content-wide: 1240px;
+    }
+    [data-theme="dark"] {
+      --color-bg: #171614;
+      --color-surface: #1c1b19;
+      --color-surface-2: #201f1d;
+      --color-surface-offset: #262320;
+      --color-border: rgba(205,204,202,0.14);
+      --color-text: #e3e1dd;
+      --color-text-muted: #b6b2ab;
+      --color-text-faint: #8a857d;
+      --color-primary: #5ea4ad;
+      --color-primary-hover: #79b4bb;
+      --color-primary-highlight: #253537;
+      --color-chip: #203234;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+      --shadow-md: 0 10px 28px rgba(0,0,0,0.28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      color: var(--color-text);
+      background: var(--color-bg);
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    .app { min-height: 100vh; }
+    .topbar {
+      position: sticky; top: 0; z-index: 40;
+      backdrop-filter: blur(10px);
+      background: color-mix(in srgb, var(--color-bg) 86%, transparent);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .topbar-inner, .section-inner {
+      width: min(calc(100% - 32px), var(--content-wide));
+      margin: 0 auto;
+    }
+    .topbar-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-4) 0;
+      gap: var(--space-4);
+    }
+    .brand {
+      display: flex; align-items: center; gap: var(--space-3); font-weight: 700;
+    }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 10px; background: var(--color-primary);
+      position: relative; box-shadow: var(--shadow-sm);
+    }
+    .brand-mark::before, .brand-mark::after {
+      content: ""; position: absolute; border: 2px solid rgba(255,255,255,0.8); border-radius: 999px;
+    }
+    .brand-mark::before { width: 18px; height: 18px; left: 8px; top: 8px; }
+    .brand-mark::after { width: 8px; height: 8px; left: 14px; top: 14px; background: rgba(255,255,255,0.8); }
+    .nav { display: none; gap: var(--space-4); color: var(--color-text-muted); }
+    .nav a { text-decoration: none; color: inherit; }
+    .top-actions { display: flex; align-items: center; gap: var(--space-2); }
+    .btn, .chip, .quick-card, .card, .section-toggle {
+      transition: all 180ms cubic-bezier(0.16,1,0.3,1);
+    }
+    .btn {
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      padding: 0.8rem 1rem;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .btn.primary { background: var(--color-primary); color: #fff; border-color: transparent; }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .shell {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+      width: min(calc(100% - 32px), var(--content-wide));
+      margin: var(--space-6) auto var(--space-16);
+    }
+    .canvas {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      background: var(--color-surface-2);
+      box-shadow: var(--shadow-md);
+    }
+    .canvas-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+    }
+    .canvas-body { padding: var(--space-4); }
+    .wire-section {
+      position: relative;
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-xl);
+      background: var(--color-surface);
+      padding: var(--space-6);
+      margin-bottom: var(--space-5);
+      scroll-margin-top: 88px;
+    }
+    .wire-section.active {
+      border-style: solid;
+      border-color: var(--color-primary);
+      background: color-mix(in srgb, var(--color-primary-highlight) 28%, var(--color-surface));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent);
+    }
+    .wire-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: var(--text-xs); letter-spacing: .04em; text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+    .wire-dot {
+      width: 8px; height: 8px; border-radius: 999px; background: var(--color-primary);
+    }
+    .hero-grid, .module-grid, .pillars-grid, .tools-grid, .updates-grid, .case-grid, .footer-grid {
+      display: grid; gap: var(--space-4);
+    }
+    .hero-grid { grid-template-columns: 1.6fr 1fr; align-items: stretch; }
+    .hero-panel, .note-panel, .card, .quick-card, .mini-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-2);
+      padding: var(--space-4);
+    }
+    .hero-panel h1 { font-size: var(--text-xl); margin: 0 0 var(--space-3); }
+    .subtle { color: var(--color-text-muted); }
+    .searchbar {
+      display: flex; gap: var(--space-3); margin-top: var(--space-5);
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-full); padding: 8px;
+    }
+    .searchbar input { flex: 1; border: 0; background: transparent; color: var(--color-text); min-width: 0; padding: 0 8px; }
+    .searchbar input:focus { outline: none; }
+    .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-full); background: var(--color-chip); color: var(--color-text-muted); font-size: var(--text-sm);
+    }
+    .module-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .quick-card, .card, .mini-card { min-height: 120px; }
+    .quick-card:hover, .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .quick-card strong, .card strong, .mini-card strong { display: block; margin-bottom: 6px; }
+    .pillars-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .tools-grid, .updates-grid, .case-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; }
+    .anno {
+      position: absolute; top: 16px; right: 16px;
+      background: var(--color-primary); color: white; font-size: 12px; font-weight: 600;
+      border-radius: 999px; padding: 6px 10px;
+      box-shadow: var(--shadow-sm);
+    }
+    .sidebar {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      background: var(--color-surface);
+      padding: var(--space-4);
+      height: fit-content;
+      position: sticky; top: 90px;
+    }
+    .sidebar h2 { font-size: var(--text-lg); margin: 0 0 var(--space-2); }
+    .sidebar p { margin: 0 0 var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); }
+    .section-list { display: grid; gap: 10px; }
+    .section-toggle {
+      width: 100%; text-align: left; padding: 12px 14px; border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border); background: var(--color-surface-2); color: var(--color-text);
+      cursor: pointer;
+    }
+    .section-toggle.active {
+      background: var(--color-primary-highlight); border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+    }
+    .note-box {
+      margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-lg);
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+    }
+    .note-box h3 { margin: 0 0 8px; font-size: var(--text-base); }
+    .note-box ul { margin: 0; padding-left: 18px; color: var(--color-text-muted); font-size: var(--text-sm); }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--space-4); }
+    .legend span { font-size: var(--text-xs); color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 12px; height: 12px; border-radius: 999px; display: inline-block; }
+    .swatch.primary { background: var(--color-primary); }
+    .swatch.surface { background: var(--color-surface-offset); border: 1px solid var(--color-border); }
+    .swatch.active { background: color-mix(in srgb, var(--color-primary-highlight) 65%, var(--color-surface)); border: 1px solid var(--color-primary); }
+    .inline-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+    .mini-card { min-height: auto; }
+    .footnote { color: var(--color-text-faint); font-size: var(--text-xs); margin-top: var(--space-3); }
+    .skip-link {
+      position: absolute; left: -999px; top: 0; background: var(--color-primary); color: #fff; padding: 8px 12px; z-index: 999;
+    }
+    .skip-link:focus { left: 8px; top: 8px; }
+    @media (min-width: 1100px) {
+      .shell { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+      .nav { display: flex; }
+    }
+    @media (max-width: 900px) {
+      .hero-grid, .module-grid, .pillars-grid, .tools-grid, .updates-grid, .case-grid, .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell { width: min(calc(100% - 20px), var(--content-wide)); }
+      .topbar-inner, .section-inner { width: min(calc(100% - 20px), var(--content-wide)); }
+      .hero-grid, .module-grid, .pillars-grid, .tools-grid, .updates-grid, .case-grid, .footer-grid { grid-template-columns: 1fr; }
+      .searchbar { flex-direction: column; border-radius: var(--radius-lg); }
+      .canvas-body, .wire-section { padding: var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div>
+            <div>HK Smart Education Platform</div>
+            <div class="subtle" style="font-size:12px; font-weight:500;">Interactive annotated homepage wireframe</div>
+          </div>
+        </div>
+        <nav class="nav" aria-label="Prototype sections">
+          <a href="#hero">Hero</a>
+          <a href="#actions">Quick actions</a>
+          <a href="#recommended">Recommendations</a>
+          <a href="#pillars">Pillars</a>
+        </nav>
+        <div class="top-actions">
+          <button class="btn" id="toggleNotes" aria-pressed="true">Hide notes</button>
+          <button class="btn" data-theme-toggle aria-label="Switch to dark mode">Theme</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="shell">
+      <section class="canvas" aria-label="Interactive homepage wireframe">
+        <div class="canvas-header">
+          <span>Simple annotated wireframe</span>
+          <span>Click a note in the right panel to focus a section</span>
+        </div>
+        <div class="canvas-body">
+
+          <section class="wire-section active" id="hero" data-section="hero">
+            <div class="anno note-marker">1</div>
+            <div class="wire-label"><span class="wire-dot"></span>Hero</div>
+            <div class="hero-grid">
+              <div class="hero-panel">
+                <div class="chip">Teacher-first launchpad</div>
+                <h1>Find curriculum-aligned resources, tools, training, and trusted EdTech in one place.</h1>
+                <p class="subtle">Primary homepage promise. Search and AI Assistant should be visible immediately to support intent-based discovery.</p>
+                <div class="searchbar">
+                  <input type="text" value="Search resources, tools, training, policies..." aria-label="Search example" />
+                  <button class="btn primary">Search</button>
+                  <button class="btn">Ask AI</button>
+                </div>
+                <div class="chips">
+                  <span class="chip">Browse by subject</span>
+                  <span class="chip">Browse by key stage</span>
+                  <span class="chip">Browse by learning goal</span>
+                </div>
+              </div>
+              <aside class="note-panel">
+                <strong>Hero annotation</strong>
+                <p class="subtle">The top area should answer three questions fast: what this platform is, who it is for, and what to do next.</p>
+                <div class="inline-actions">
+                  <button class="btn">Primary CTA</button>
+                  <button class="btn">Secondary CTA</button>
+                </div>
+                <p class="footnote">Suggested priority: Search first, AI Assistant second, then browse shortcuts.</p>
+              </aside>
+            </div>
+          </section>
+
+          <section class="wire-section" id="actions" data-section="actions">
+            <div class="anno note-marker">2</div>
+            <div class="wire-label"><span class="wire-dot"></span>Quick actions</div>
+            <div class="module-grid">
+              <button class="quick-card"><strong>Find Resources</strong><span class="subtle">Direct access to repository and curriculum-aligned materials.</span></button>
+              <button class="quick-card"><strong>Find Professional Development</strong><span class="subtle">Go eLearning, EdAcademy, AI literacy, and training paths.</span></button>
+              <button class="quick-card"><strong>Find Tools</strong><span class="subtle">Launch STAR, OQB / DFS, Small Campus, and other services.</span></button>
+              <button class="quick-card"><strong>Find EdTech Solutions</strong><span class="subtle">Browse vetted local and global solutions through EdMarket.</span></button>
+            </div>
+          </section>
+
+          <section class="wire-section" id="recommended" data-section="recommended">
+            <div class="anno note-marker">3</div>
+            <div class="wire-label"><span class="wire-dot"></span>Recommended for you</div>
+            <div class="module-grid">
+              <article class="card"><strong>Recommended Resources</strong><span class="subtle">Rules-based in Sprint 1, AI-personalized later.</span></article>
+              <article class="card"><strong>Recommended Courses</strong><span class="subtle">Drive PD adoption and teacher development.</span></article>
+              <article class="card"><strong>Recommended Tools</strong><span class="subtle">Improve ecosystem flow into EdCity services.</span></article>
+              <article class="card"><strong>Recommended EdTech</strong><span class="subtle">Surface relevant solutions by subject or use case.</span></article>
+            </div>
+          </section>
+
+          <section class="wire-section" id="pillars" data-section="pillars">
+            <div class="anno note-marker">4</div>
+            <div class="wire-label"><span class="wire-dot"></span>Four pillars overview</div>
+            <div class="pillars-grid">
+              <article class="card"><strong>Teaching Resources</strong><span class="subtle">Policy, research, K-12 resources, localized content.</span></article>
+              <article class="card"><strong>Professional Development</strong><span class="subtle">Courses, AI literacy training, learning paths, records.</span></article>
+              <article class="card"><strong>EdTech Solutions</strong><span class="subtle">Curated local and global solutions, eLAFP-linked discovery.</span></article>
+              <article class="card"><strong>EdCity Tools</strong><span class="subtle">STAR, OQB / DFS, Small Campus, and related services.</span></article>
+            </div>
+          </section>
+
+          <section class="wire-section" id="curriculum" data-section="curriculum">
+            <div class="anno note-marker">5</div>
+            <div class="wire-label"><span class="wire-dot"></span>Browse by curriculum</div>
+            <div class="module-grid">
+              <article class="mini-card"><strong>By Subject</strong><span class="subtle">Chinese, English, Mathematics, Science, etc.</span></article>
+              <article class="mini-card"><strong>By Key Stage</strong><span class="subtle">Primary, junior secondary, senior secondary.</span></article>
+              <article class="mini-card"><strong>By Learning Goal</strong><span class="subtle">Lesson intent and teaching objective-based discovery.</span></article>
+              <article class="mini-card"><strong>By Assessment Need</strong><span class="subtle">Practice, diagnostic, formative, and revision tasks.</span></article>
+            </div>
+          </section>
+
+          <section class="wire-section" id="tools" data-section="tools">
+            <div class="anno note-marker">6</div>
+            <div class="wire-label"><span class="wire-dot"></span>Featured tools</div>
+            <div class="tools-grid">
+              <article class="card"><strong>STAR</strong><span class="subtle">Online learning, teaching, and assessment entry point.</span></article>
+              <article class="card"><strong>OQB / DFS</strong><span class="subtle">Assessment and question-bank access.</span></article>
+              <article class="card"><strong>Small Campus</strong><span class="subtle">Additional EdCity ecosystem service shortcut.</span></article>
+            </div>
+          </section>
+
+          <section class="wire-section" id="updates" data-section="updates">
+            <div class="anno note-marker">7</div>
+            <div class="wire-label"><span class="wire-dot"></span>Policy, research and updates</div>
+            <div class="updates-grid">
+              <article class="card"><strong>Policy Highlights</strong><span class="subtle">Digital education, AI literacy, teacher AI training.</span></article>
+              <article class="card"><strong>Research and Best Practices</strong><span class="subtle">Trusted guidance and classroom implementation insights.</span></article>
+              <article class="card"><strong>Latest Updates</strong><span class="subtle">Announcements, platform updates, and key initiatives.</span></article>
+            </div>
+          </section>
+
+          <section class="wire-section" id="pd" data-section="pd">
+            <div class="anno note-marker">8</div>
+            <div class="wire-label"><span class="wire-dot"></span>Professional development spotlight</div>
+            <div class="tools-grid">
+              <article class="card"><strong>AI Literacy Training</strong><span class="subtle">Visible early to match policy alignment and adoption goals.</span></article>
+              <article class="card"><strong>Featured Courses</strong><span class="subtle">Promote timely and relevant teacher learning opportunities.</span></article>
+              <article class="card"><strong>Learning Paths</strong><span class="subtle">Bridge public discovery and later logged-in progress tracking.</span></article>
+            </div>
+          </section>
+
+          <section class="wire-section" id="cases" data-section="cases">
+            <div class="anno note-marker">9</div>
+            <div class="wire-label"><span class="wire-dot"></span>School practice and case studies</div>
+            <div class="case-grid">
+              <article class="card"><strong>EdTech Adoption Stories</strong><span class="subtle">Show how schools apply solutions in practice.</span></article>
+              <article class="card"><strong>eLAFP Examples</strong><span class="subtle">Connect innovation projects to classroom use cases.</span></article>
+              <article class="card"><strong>Classroom Practice</strong><span class="subtle">Bridge inspiration with implementable teacher workflows.</span></article>
+            </div>
+          </section>
+
+          <section class="wire-section" id="footer" data-section="footer">
+            <div class="anno note-marker">10</div>
+            <div class="wire-label"><span class="wire-dot"></span>Footer</div>
+            <div class="footer-grid">
+              <article class="mini-card"><strong>Platform Info</strong><span class="subtle">About, vision, policy alignment.</span></article>
+              <article class="mini-card"><strong>Membership</strong><span class="subtle">Sign in, registration, school accounts.</span></article>
+              <article class="mini-card"><strong>Support</strong><span class="subtle">Help centre, contact, FAQ.</span></article>
+              <article class="mini-card"><strong>Privacy</strong><span class="subtle">Data use, consent, terms.</span></article>
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+      <aside class="sidebar" aria-label="Annotations panel">
+        <h2>Annotations</h2>
+        <p>Use this panel to inspect intent, priority, and rationale for each homepage module.</p>
+        <div class="section-list" id="sectionList">
+          <button class="section-toggle active" data-target="hero">1. Hero — value proposition + search + AI</button>
+          <button class="section-toggle" data-target="actions">2. Quick actions — task-based shortcuts</button>
+          <button class="section-toggle" data-target="recommended">3. Recommended for you — relevance layer</button>
+          <button class="section-toggle" data-target="pillars">4. Four pillars — explain platform model</button>
+          <button class="section-toggle" data-target="curriculum">5. Browse by curriculum — structured discovery</button>
+          <button class="section-toggle" data-target="tools">6. Featured tools — ecosystem flow</button>
+          <button class="section-toggle" data-target="updates">7. Policy / research / updates — trust layer</button>
+          <button class="section-toggle" data-target="pd">8. PD spotlight — promote teacher development</button>
+          <button class="section-toggle" data-target="cases">9. Case studies — adoption proof</button>
+          <button class="section-toggle" data-target="footer">10. Footer — utility and support</button>
+        </div>
+
+        <div class="note-box" id="noteBox">
+          <h3>Hero</h3>
+          <ul id="noteList">
+            <li>Keep the first screen focused on teacher jobs-to-be-done.</li>
+            <li>Search should be the dominant action; AI Assistant is the secondary helper.</li>
+            <li>Browse chips reduce ambiguity for users who arrive without a precise query.</li>
+          </ul>
+        </div>
+
+        <div class="legend">
+          <span><i class="swatch primary"></i> Annotation marker</span>
+          <span><i class="swatch active"></i> Active section</span>
+          <span><i class="swatch surface"></i> Wireframe module</span>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const themeToggle = document.querySelector('[data-theme-toggle]');
+      const root = document.documentElement;
+      let theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      root.setAttribute('data-theme', theme);
+      const updateThemeLabel = () => themeToggle.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+      updateThemeLabel();
+      themeToggle.addEventListener('click', () => {
+        theme = theme === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', theme);
+        updateThemeLabel();
+      });
+
+      const notes = {
+        hero: {
+          title: 'Hero',
+          bullets: [
+            'Keep the first screen focused on teacher jobs-to-be-done.',
+            'Search should be the dominant action; AI Assistant is the secondary helper.',
+            'Browse chips reduce ambiguity for users who arrive without a precise query.'
+          ]
+        },
+        actions: {
+          title: 'Quick actions',
+          bullets: [
+            'Use task-based language rather than internal product names.',
+            'This block lowers time-to-value for repeat and first-time teachers.',
+            'Each card should lead into a focused flow, not a generic listing page.'
+          ]
+        },
+        recommended: {
+          title: 'Recommended for you',
+          bullets: [
+            'In Sprint 1, this can be editorially curated or rules-based.',
+            'In Sprint 2, upgrade this area with teacher-profile signals and behavioral data.',
+            'Keep labels transparent so users understand why something is shown.'
+          ]
+        },
+        pillars: {
+          title: 'Four pillars overview',
+          bullets: [
+            'This section explains the platform architecture at a glance.',
+            'It should orient users without forcing them to interpret internal org structure.',
+            'Use concise descriptions and strong entry CTAs for each pillar.'
+          ]
+        },
+        curriculum: {
+          title: 'Browse by curriculum',
+          bullets: [
+            'This is the structured discovery path for teachers who do not start with search.',
+            'Subject, key stage, and learning goal should work together as primary filters.',
+            'This area is especially important for curriculum alignment credibility.'
+          ]
+        },
+        tools: {
+          title: 'Featured tools',
+          bullets: [
+            'Highlight priority tools that drive ecosystem flow and adoption.',
+            'Keep this curated; too many tools will dilute entry clarity.',
+            'Each tile should clearly state what problem the tool solves.'
+          ]
+        },
+        updates: {
+          title: 'Policy, research and updates',
+          bullets: [
+            'This module builds trust and public-sector relevance.',
+            'Balance authority content with scan-friendly summaries.',
+            'Avoid making news the dominant homepage content type.'
+          ]
+        },
+        pd: {
+          title: 'Professional development spotlight',
+          bullets: [
+            'This block should directly support teacher growth and AI literacy goals.',
+            'Learning paths can later bridge into a logged-in dashboard experience.',
+            'Promote timely, specific development opportunities rather than generic listings.'
+          ]
+        },
+        cases: {
+          title: 'School practice and case studies',
+          bullets: [
+            'Use this area to prove adoption value with real school examples.',
+            'Stories should connect problem, intervention, and classroom outcome.',
+            'This section supports change management, not just inspiration.'
+          ]
+        },
+        footer: {
+          title: 'Footer',
+          bullets: [
+            'Keep utility content here so the homepage stays teacher-task-focused.',
+            'Membership, support, privacy, and platform info should remain accessible but secondary.',
+            'This is support architecture, not the main discovery path.'
+          ]
+        }
+      };
+
+      const sectionButtons = [...document.querySelectorAll('.section-toggle')];
+      const sections = [...document.querySelectorAll('.wire-section')];
+      const noteBoxTitle = document.querySelector('#noteBox h3');
+      const noteList = document.querySelector('#noteList');
+
+      function setActive(id) {
+        sectionButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.target === id));
+        sections.forEach(sec => sec.classList.toggle('active', sec.dataset.section === id));
+        noteBoxTitle.textContent = notes[id].title;
+        noteList.innerHTML = notes[id].bullets.map(item => `<li>${item}</li>`).join('');
+      }
+
+      sectionButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.target;
+          document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setActive(id);
+        });
+      });
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActive(visible.target.dataset.section);
+      }, { threshold: [0.35, 0.6, 0.85] });
+
+      sections.forEach(sec => observer.observe(sec));
+
+      const toggleNotes = document.getElementById('toggleNotes');
+      const sidebar = document.querySelector('.sidebar');
+      toggleNotes.addEventListener('click', () => {
+        const hidden = sidebar.hasAttribute('hidden');
+        if (hidden) {
+          sidebar.removeAttribute('hidden');
+          toggleNotes.textContent = 'Hide notes';
+          toggleNotes.setAttribute('aria-pressed', 'true');
+        } else {
+          sidebar.setAttribute('hidden', '');
+          toggleNotes.textContent = 'Show notes';
+          toggleNotes.setAttribute('aria-pressed', 'false');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
