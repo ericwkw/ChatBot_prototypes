@@ -805,6 +805,152 @@ a { color: inherit; text-decoration: none; }
 .animate-in { animation: fadeInUp 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
 .message { animation: fadeInUp 240ms ease-out; }
+
+/* ─── CITATIONS ─── */
+.message-bubble sup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px; height: 15px;
+  font-size: 9px;
+  font-weight: 700;
+  font-style: normal;
+  background: var(--color-primary-highlight);
+  color: var(--color-primary);
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-full);
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  margin: 0 1px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  line-height: 1;
+}
+.message-bubble sup:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.sources-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  background: var(--color-chip-bg);
+  color: var(--color-chip-text);
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.sources-chip:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+.sources-chip svg { flex-shrink: 0; }
+
+/* Citations tray */
+.citations-tray {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  transform: translateY(100%);
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 20;
+  max-height: 65%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 20px oklch(0.2 0.01 80 / 0.1);
+}
+.citations-tray.open { transform: translateY(0); }
+[data-theme="dark"] .citations-tray { box-shadow: 0 -4px 20px oklch(0 0 0 / 0.35); }
+
+.citations-tray-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  flex-shrink: 0;
+}
+.citations-tray-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+.citations-tray-close {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  transition: color var(--transition), background var(--transition);
+}
+.citations-tray-close:hover { color: var(--color-text); background: var(--color-surface-offset); }
+
+.citations-list {
+  overflow-y: auto;
+  padding: var(--space-1) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+}
+.citations-list::-webkit-scrollbar { width: 4px; }
+.citations-list::-webkit-scrollbar-track { background: transparent; }
+.citations-list::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 99px; }
+
+.citation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+.citation-item:last-child { border-bottom: none; }
+
+.citation-num {
+  width: 20px; height: 20px;
+  flex-shrink: 0;
+  background: var(--color-primary-highlight);
+  color: var(--color-primary);
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-full);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.citation-info { flex: 1; min-width: 0; }
+.citation-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+.citation-section {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  display: flex; align-items: center; gap: 3px;
+  margin-bottom: var(--space-2);
+}
+.citation-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: oklch(from var(--color-primary) l c h / 0.3);
+  transition: text-decoration-color var(--transition);
+}
+.citation-link:hover { text-decoration-color: var(--color-primary); }
 </style>
 </head>
 <body>
@@ -959,6 +1105,19 @@ a { color: inherit; text-decoration: none; }
   <!-- Body -->
   <div class="chat-body" id="chatBody" role="log" aria-live="polite" aria-label="Conversation">
     <!-- Welcome state rendered by JS -->
+  </div>
+
+  <!-- Citations tray -->
+  <div class="citations-tray" id="citationsTray" role="complementary" aria-label="Sources">
+    <div class="citations-tray-header">
+      <span class="citations-tray-title" id="citationsTrayTitle">Sources</span>
+      <button class="citations-tray-close" onclick="closeCitations()" aria-label="Close sources">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="citations-list" id="citationsList"></div>
   </div>
 
   <!-- Footer -->
@@ -1182,7 +1341,6 @@ function renderAssistantResponse(data) {
   const wrap = document.createElement('div');
   wrap.className = 'message assistant animate-in';
   wrap.setAttribute('aria-live', 'polite');
-  let cardsToRender = [];
   const isLowConfidence = !!data.lowConfidence;
 
   let html = `<div class="message-name">Site Guide</div>
@@ -1199,9 +1357,12 @@ function renderAssistantResponse(data) {
     if(data.summary) {
       html += `<div class="message-bubble">${data.summary}</div>`;
     }
-    if(data.cards && data.cards.length) {
-      cardsToRender = data.cards;
-      html += `<div class="result-cards"></div>`;
+    if(data.sources && data.sources.length) {
+      const n = data.sources.length;
+      html += `<button class="sources-chip">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        ${n} source${n !== 1 ? 's' : ''}
+      </button>`;
     }
     if(data.followups && data.followups.length) {
       const followups = isLowConfidence ? data.followups.slice(0, 1) : data.followups;
@@ -1227,26 +1388,12 @@ function renderAssistantResponse(data) {
   wrap.innerHTML = html;
   chatBody.appendChild(wrap);
 
-  if(cardsToRender.length) {
-    const cardsContainer = wrap.querySelector('.result-cards');
-    cardsToRender.forEach((c, index) => {
-      setTimeout(() => {
-        const card = document.createElement('div');
-        card.className = 'result-card animate-in';
-        card.innerHTML = `
-          <div class="result-card-header">
-            <div class="result-card-title">${c.title}</div>
-            <span class="result-card-tag tag-${c.type}">${c.label}</span>
-          </div>
-          <div class="result-card-desc">${c.desc}</div>
-          <div class="result-card-footer">
-            <a class="result-card-source" href="#" target="_blank" rel="noopener">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              ${c.source}
-            </a>
-          </div>`;
-        cardsContainer.appendChild(card);
-      }, 240 * (index + 1));
+  // Wire up sources chip and inline citation badges
+  if(data.sources && data.sources.length) {
+    const chip = wrap.querySelector('.sources-chip');
+    if(chip) chip.addEventListener('click', () => openCitations(data.sources));
+    wrap.querySelectorAll('.cite-badge').forEach(sup => {
+      sup.addEventListener('click', () => openCitations(data.sources));
     });
   }
 }
@@ -1257,6 +1404,7 @@ function scrollDown() {
 
 function resetChat() {
   conversationStarted = false;
+  closeCitations();
   renderWelcome();
 }
 
@@ -1277,17 +1425,46 @@ function showGuidedPaths() {
   scrollDown();
 }
 
+// ── Citations tray ──
+function openCitations(sources) {
+  const tray = document.getElementById('citationsTray');
+  const list = document.getElementById('citationsList');
+  const titleEl = document.getElementById('citationsTrayTitle');
+  titleEl.textContent = `${sources.length} source${sources.length !== 1 ? 's' : ''}`;
+  list.innerHTML = sources.map((s, i) => `
+    <div class="citation-item">
+      <div class="citation-num">${i + 1}</div>
+      <div class="citation-info">
+        <div class="citation-title">${s.title}</div>
+        <div class="citation-section">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          ${s.section}
+        </div>
+        <a class="citation-link" href="#" target="_blank" rel="noopener">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          View page
+        </a>
+      </div>
+    </div>`).join('');
+  tray.classList.add('open');
+}
+
+function closeCitations() {
+  document.getElementById('citationsTray').classList.remove('open');
+}
+
 // ── Simulated responses ──
 function getResponse(q) {
+  // Guided path chip aliases
   if(q === 'events') return getResponse('digital education week');
   if(q === 'news') return getResponse('news on digital education');
   if(q === 'research and reports') return getResponse('research papers and reports');
-  if(q === 'teaching resources / professional development') return getResponse('teaching resources and professional development');
   if(q === 'about this website') return getResponse('about digital education @ hkedcity');
-  if(q === 'get help' || q.includes('help') || q.includes('support')) {
+
+  if(q === 'get help' || (q.includes('help') && !q.includes('helpful')) || q.includes('support')) {
     return {
       summary: `The support team can help with anything specific. In the meantime, I can point you to the right section — just tell me what you're looking for.`,
-      cards: [],
+      sources: [],
       fallback: true,
       followups: ['What does this website cover?', 'Events', 'News', 'Research and reports']
     };
@@ -1295,32 +1472,32 @@ function getResponse(q) {
 
   if(q.includes('register') || q.includes('registration') || q.includes('sign up') || q.includes('attend') || q.includes('ticket') || q.includes('how do i join')) {
     return {
-      summary: `Registration details for each event are on the individual event pages — here's where to find them.`,
-      cards: [
-        { title: 'Digital Education Week 2026', type: 'event', label: 'Event', desc: 'Find attendance and registration information on the main DEW 2026 event page.', source: 'Events → DEW 2026' },
-        { title: 'Learning & Teaching Expo (LTE) 2026', type: 'event', label: 'Event', desc: 'Visit the LTE 2026 page for registration details and visitor information.', source: 'Events → LTE 2026' },
+      summary: `Registration and attendance information is on each event's individual page — the process varies slightly by event. <sup class="cite-badge">1</sup> <sup class="cite-badge">2</sup>`,
+      sources: [
+        { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'Attendance and registration information for DEW 2026' },
+        { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Visitor registration and event details for LTE 2026' },
       ],
-      followups: ['AIinLT 2026 summit', 'When is Digital Education Week?', 'What does this website cover?']
+      followups: ['When is Digital Education Week?', 'Where are events held?', 'AIinLT 2026 summit']
     };
   }
 
   if(q.includes('when is') || q.includes('what date') || q.includes('schedule') || q.includes('what time') || (q.includes('when') && (q.includes('dew') || q.includes('expo') || q.includes('summit') || q.includes('event') || q.includes('2026')))) {
     return {
-      summary: `Event dates and schedules are available on the individual event pages — here's where to look.`,
-      cards: [
-        { title: 'Digital Education Week 2026', type: 'event', label: 'Event', desc: 'Check the DEW 2026 page for confirmed dates, featured activities, and the weekly schedule.', source: 'Events → DEW 2026' },
-        { title: 'Learning & Teaching Expo (LTE) 2026', type: 'event', label: 'Event', desc: 'Find LTE 2026 dates and programme timing on the expo event page.', source: 'Events → LTE 2026' },
+      summary: `Event dates and schedules are on the individual event pages — each has a detailed programme. <sup class="cite-badge">1</sup> <sup class="cite-badge">2</sup>`,
+      sources: [
+        { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'Confirmed dates, featured activities, and the weekly schedule' },
+        { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'LTE 2026 dates and programme timing' },
       ],
-      followups: ['AIinLT 2026 summit', 'How do I register?', 'Digital Education Week 2026']
+      followups: ['How do I register?', 'Where are events held?', 'AIinLT 2026 summit']
     };
   }
 
   if(q.includes('where') || q.includes('venue') || q.includes('location') || q.includes('held')) {
     return {
-      summary: `Venue and location details are on each event page — here's where to start.`,
-      cards: [
-        { title: 'Digital Education Week 2026', type: 'event', label: 'Event', desc: 'Visit the DEW 2026 page for venue information and practical event details.', source: 'Events → DEW 2026' },
-        { title: 'Learning & Teaching Expo (LTE) 2026', type: 'event', label: 'Event', desc: 'Find location and venue details on the LTE 2026 event page.', source: 'Events → LTE 2026' },
+      summary: `Venue and location details are available on each event's dedicated page. <sup class="cite-badge">1</sup> <sup class="cite-badge">2</sup>`,
+      sources: [
+        { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'Venue information and practical event details' },
+        { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Location and venue details for LTE 2026' },
       ],
       followups: ['How do I register?', 'Digital Education Week 2026', 'AIinLT 2026 summit']
     };
@@ -1328,76 +1505,83 @@ function getResponse(q) {
 
   if(q.includes('what does this website cover') || q.includes('what this site covers') || q.includes('website') || q.includes('site') || q.includes('what does this')) {
     return {
-      summary: `This site covers <strong>digital education events</strong>, news, research, teaching resources, and background on Digital Education @ HKEdCity. Here's what you can explore.`,
-      cards: [
-        { title: 'Flagship events', type: 'event', label: 'Events', desc: 'Explore Digital Education Week 2026, Learning & Teaching Expo (LTE) 2026, and the AIinLT 2026 summit.', source: 'Events → Overview' },
-        { title: 'News and stories', type: 'tool', label: 'News', desc: 'Browse updates and stories about digital education in Hong Kong and related developments.', source: 'News → Latest' },
-        { title: 'Resources for teachers', type: 'training', label: 'Resources', desc: 'Find teaching resources and professional development opportunities for schools and educators.', source: 'Resources → Teacher support' },
+      summary: `This site is your guide to digital education in Hong Kong. It covers <strong>flagship events</strong> like Digital Education Week 2026, <sup class="cite-badge">1</sup> <strong>news and stories</strong>, <sup class="cite-badge">2</sup> <strong>research papers and reports</strong>, and <strong>resources for teachers</strong>. <sup class="cite-badge">3</sup>`,
+      sources: [
+        { title: 'Flagship events', section: 'Events → Overview', desc: 'DEW 2026, LTE 2026, and AIinLT 2026' },
+        { title: 'News and stories', section: 'News → Latest', desc: 'Updates and stories on digital education in Hong Kong' },
+        { title: 'Resources for teachers', section: 'Resources → Overview', desc: 'Teaching resources and professional development' },
       ],
       followups: ['Digital Education Week 2026', 'News on digital education', 'Research papers and reports', 'About Digital Education @ HKEdCity']
     };
   }
+
   if(q.includes('digital education week') || q.includes('dew')) {
     return {
-      summary: `<strong>Digital Education Week</strong> is the site's main annual event — bringing together flagship programmes, exhibitions, and summits in one place.`,
-      cards: [
-        { title: 'Digital Education Week 2026', type: 'event', label: 'Event', desc: "Get an overview of the week's featured activities and the flagship programmes that run alongside it.", source: 'Events → DEW 2026' },
-        { title: 'Learning & Teaching Expo (LTE) 2026', type: 'event', label: 'Event', desc: 'Find expo information, programme highlights, and what to expect at the event.', source: 'Events → LTE 2026' },
-        { title: 'AIinLT 2026 summit', type: 'event', label: 'Event', desc: 'Explore the summit on AI in language learning and teaching.', source: 'Events → AIinLT 2026' },
+      summary: `<strong>Digital Education Week 2026</strong> is the site's flagship annual event, running in June 2026. <sup class="cite-badge">1</sup> It brings together three major programmes — the <strong>Learning & Teaching Expo (LTE)</strong>, <sup class="cite-badge">2</sup> the <strong>AIinLT summit</strong>, <sup class="cite-badge">3</sup> and a range of featured activities and exhibitions throughout the week.`,
+      sources: [
+        { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: "Overview of the week's programmes and featured activities" },
+        { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Flagship education expo, part of DEW 2026' },
+        { title: 'AIinLT 2026 summit', section: 'Events → AIinLT 2026', desc: 'Summit on AI in language learning and teaching' },
       ],
-      followups: ['Learning & Teaching Expo (LTE) 2026', 'AIinLT 2026 summit', 'News on digital education']
+      followups: ['How do I register?', 'Learning & Teaching Expo (LTE) 2026', 'AIinLT 2026 summit']
     };
   }
-  if(q.includes('learning & teaching expo') || q.includes('lte 2026') || q == 'lte' || q.includes('expo')) {
+
+  if(q.includes('learning & teaching expo') || q.includes('lte 2026') || q === 'lte' || q.includes('expo')) {
     return {
-      summary: `Here's what the site has on <strong>Learning & Teaching Expo 2026</strong>.`,
-      cards: [
-        { title: 'Learning & Teaching Expo (LTE) 2026', type: 'event', label: 'Event', desc: 'Start here for programme information, highlights, and what to expect at the expo.', source: 'Events → LTE 2026' },
-        { title: 'Digital Education Week 2026', type: 'event', label: 'Event', desc: 'LTE 2026 is part of the broader Digital Education Week — explore the full programme here.', source: 'Events → DEW 2026' },
+      summary: `The <strong>Learning & Teaching Expo 2026</strong> is one of the flagship events during Digital Education Week, bringing together educators, exhibitors, and ed-tech providers. <sup class="cite-badge">1</sup> It sits within the broader DEW 2026 programme, <sup class="cite-badge">2</sup> which runs across June.`,
+      sources: [
+        { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Programme information, highlights, and visitor details' },
+        { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'The broader DEW programme that LTE 2026 is part of' },
       ],
-      followups: ['AIinLT 2026 summit', 'Digital Education Week 2026', 'What does this website cover?']
+      followups: ['AIinLT 2026 summit', 'How do I register?', 'Digital Education Week 2026']
     };
   }
+
   if(q.includes('aiinlt') || q.includes('ai summit') || q.includes('language learning') || q.includes('summit')) {
     return {
-      summary: `The <strong>AIinLT 2026 summit</strong> focuses on AI in language learning and teaching, and is one of the key programmes during Digital Education Week.`,
-      cards: [
-        { title: 'AIinLT 2026 summit', type: 'event', label: 'Event', desc: 'Find summit details, practical sessions, and related content on AI in language education.', source: 'Events → AIinLT 2026' },
-        { title: 'Digital Education Week 2026', type: 'event', label: 'Event', desc: 'The AIinLT summit is part of Digital Education Week — explore the full programme here.', source: 'Events → DEW 2026' },
+      summary: `The <strong>AIinLT 2026 summit</strong> focuses on AI in language learning and teaching. <sup class="cite-badge">1</sup> It's one of the key programmes during Digital Education Week, running alongside LTE 2026 as part of the full DEW programme. <sup class="cite-badge">2</sup>`,
+      sources: [
+        { title: 'AIinLT 2026 summit', section: 'Events → AIinLT 2026', desc: 'Summit details, sessions, and content on AI in language education' },
+        { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'The full DEW programme context' },
       ],
-      followups: ['Learning & Teaching Expo (LTE) 2026', 'News on digital education', 'Research papers and reports']
+      followups: ['Learning & Teaching Expo (LTE) 2026', 'Research papers and reports', 'News on digital education']
     };
   }
+
   if(q.includes('news')) {
     return {
-      summary: `Here's where to find <strong>news and updates</strong> on digital education in Hong Kong.`,
-      cards: [
-        { title: 'News on digital education', type: 'tool', label: 'News', desc: 'Browse the latest updates, stories, and highlights on digital education in Hong Kong.', source: 'News → Latest' },
-        { title: 'Featured articles', type: 'tool', label: 'News', desc: 'Find articles on major themes such as AI in education and Digital Education Week.', source: 'News → Featured' },
+      summary: `The <strong>News</strong> section covers the latest updates and stories on digital education in Hong Kong — including highlights from events, new initiatives, and in-depth articles. <sup class="cite-badge">1</sup> You'll find featured pieces on topics like AI in education and developments around Digital Education Week. <sup class="cite-badge">2</sup>`,
+      sources: [
+        { title: 'News on digital education', section: 'News → Latest', desc: 'Latest updates and stories on digital education in HK' },
+        { title: 'Featured articles', section: 'News → Featured', desc: 'In-depth articles on AI in education and key themes' },
       ],
       followups: ['Research papers and reports', 'About Digital Education @ HKEdCity', 'Teaching resources and professional development']
     };
   }
+
   if(q.includes('research') || q.includes('papers') || q.includes('reports')) {
     return {
-      summary: `Here's where to find <strong>research papers and reports</strong> on digital education, AI in learning, and related topics.`,
-      cards: [
-        { title: 'Research papers and reports', type: 'reference', label: 'Research', desc: 'Browse papers, reports, and research on digital education and related topics.', source: 'Research → Overview' },
-        { title: 'Policy and digital education themes', type: 'reference', label: 'Research', desc: 'Explore content on policy, implementation, and emerging themes across digital education.', source: 'Research → Themes' },
+      summary: `The site hosts a collection of <strong>research papers and reports</strong> on digital education — covering topics like AI in learning, policy, and classroom practice in Hong Kong schools. <sup class="cite-badge">1</sup> You can also browse by theme, such as emerging technologies or implementation approaches. <sup class="cite-badge">2</sup>`,
+      sources: [
+        { title: 'Research papers and reports', section: 'Research → Overview', desc: 'Browse all research papers and reports' },
+        { title: 'Research by theme', section: 'Research → Themes', desc: 'Filter by policy, AI in education, and digital learning themes' },
       ],
       followups: ['News on digital education', 'Teaching resources and professional development', 'What does this website cover?']
     };
   }
-  if(q == 'teaching resources' || q == 'professional development' || q == 'both') {
+
+  if(q === 'teaching resources' || q === 'professional development' || q === 'both') {
     return {
-      summary: `Here's what the site has for <strong>teachers</strong> and professional learning.`,
-      cards: [
-        { title: 'Teaching resources', type: 'training', label: 'Resources', desc: 'Find practical materials and resources for classroom use.', source: 'Resources → Teaching' },
-        { title: 'Professional development', type: 'training', label: 'Professional development', desc: 'Explore learning opportunities and programmes for teacher development.', source: 'Resources → Professional development' },
+      summary: `The site has a dedicated section for <strong>teaching resources</strong> — practical classroom materials for educators — alongside <strong>professional development</strong> programmes designed to support ongoing learning. <sup class="cite-badge">1</sup> <sup class="cite-badge">2</sup>`,
+      sources: [
+        { title: 'Teaching resources', section: 'Resources → Teaching', desc: 'Practical materials and resources for classroom use' },
+        { title: 'Professional development', section: 'Resources → Professional development', desc: 'Learning programmes and opportunities for teachers' },
       ],
       followups: ['News on digital education', 'Research papers and reports', 'About Digital Education @ HKEdCity']
     };
   }
+
   if(q.includes('teaching resources') || q.includes('professional development') || q.includes('teacher') || q.includes('resources and professional')) {
     return {
       narrowing: {
@@ -1406,18 +1590,20 @@ function getResponse(q) {
       }
     };
   }
+
   if(q.includes('about') || q.includes('hkedcity') || q.includes('organisation')) {
     return {
-      summary: `Here's background on <strong>Digital Education @ HKEdCity</strong> — what it is and how it connects to everything on this site.`,
-      cards: [
-        { title: 'About Digital Education @ HKEdCity', type: 'tool', label: 'About', desc: "Get an overview of Digital Education @ HKEdCity, what the organisation does, and how this site fits in.", source: 'About → Overview' },
+      summary: `<strong>Digital Education @ HKEdCity</strong> drives digital education initiatives in Hong Kong — including flagship events, research, and resources for educators. <sup class="cite-badge">1</sup> This site is its public portal, designed to help you find events, news, and everything it publishes.`,
+      sources: [
+        { title: 'About Digital Education @ HKEdCity', section: 'About → Overview', desc: "What the organisation does and how the site fits in" },
       ],
       followups: ['Digital Education Week 2026', 'News on digital education', 'Teaching resources and professional development']
     };
   }
+
   return {
     summary: `<p>That's a bit outside what I cover. I'm built to help you navigate <strong>Digital Education @ HKEdCity</strong> — events, news, research, resources, and more.</p><p>Try asking me something specific about the site, or explore a guided path below.</p>`,
-    cards: [],
+    sources: [],
     lowConfidence: true,
     followups: ['What does this website cover?']
   };
