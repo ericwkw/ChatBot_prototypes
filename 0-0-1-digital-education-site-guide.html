@@ -1162,6 +1162,40 @@ a { color: inherit; text-decoration: none; }
 let isOpen = false;
 let selectedRole = null;
 let conversationStarted = false;
+const askedTopics = new Set();
+
+// ── Role-aware pivot follow-up ──
+const ROLE_PIVOT = {
+  'First-time visitor': 'What does this website cover?',
+  'Event participant':  'How do I register?',
+  'Teacher':            'Teaching resources',
+  'Researcher':         'Research and reports',
+};
+function getRolePivot() {
+  return ROLE_PIVOT[selectedRole] || 'What does this website cover?';
+}
+
+// ── Resolve typed followup slots → display strings ──
+// Each followup: { type: 'deepen'|'branch'|'pivot', text: string|null }
+// pivot with text:null is filled by getRolePivot()
+// Already-asked topics and duplicates within the set are suppressed
+function resolveFollowups(followups, isLowConfidence) {
+  const seen = new Set();
+  const result = [];
+  for (const f of followups) {
+    if (isLowConfidence && result.length >= 1) break;
+    let text = f.text;
+    if (f.type === 'pivot' && !text) text = getRolePivot();
+    if (!text) continue;
+    const key = text.toLowerCase();
+    if (askedTopics.has(key)) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(text);
+  }
+  return result;
+}
+
 const GUIDED_PATHS = [
   { icon: '📅', text: 'Events' },
   { icon: '📰', text: 'News' },
@@ -1278,6 +1312,7 @@ function handleSend() {
 function sendMessage(text) {
   if(!isOpen) openChat();
   conversationStarted = true;
+  askedTopics.add(text.toLowerCase());
 
   // Clear welcome state if present
   const welcome = chatBody.querySelector('.welcome-state');
@@ -1365,11 +1400,13 @@ function renderAssistantResponse(data) {
       </button>`;
     }
     if(data.followups && data.followups.length) {
-      const followups = isLowConfidence ? data.followups.slice(0, 1) : data.followups;
-      html += `<div class="chips-label">Continue exploring</div>
-      <div class="followup-chips">
-        ${followups.map(f => `<button class="followup-chip" onclick="sendMessage('${f}')">→ ${f}</button>`).join('')}
-      </div>`;
+      const resolved = resolveFollowups(data.followups, isLowConfidence);
+      if(resolved.length) {
+        html += `<div class="chips-label">Continue exploring</div>
+        <div class="followup-chips">
+          ${resolved.map(f => `<button class="followup-chip" onclick="sendMessage('${f}')">→ ${f}</button>`).join('')}
+        </div>`;
+      }
     }
     if(data.fallback) {
       html += `<div class="fallback-links" style="margin-top:var(--space-1)">
@@ -1404,6 +1441,7 @@ function scrollDown() {
 
 function resetChat() {
   conversationStarted = false;
+  askedTopics.clear();
   closeCitations();
   renderWelcome();
 }
@@ -1466,7 +1504,11 @@ function getResponse(q) {
       summary: `The support team can help with anything specific. In the meantime, I can point you to the right section — just tell me what you're looking for.`,
       sources: [],
       fallback: true,
-      followups: ['What does this website cover?', 'Events', 'News', 'Research and reports']
+      followups: [
+        { type: 'deepen', text: 'What does this website cover?' },
+        { type: 'branch', text: 'Events' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1477,7 +1519,11 @@ function getResponse(q) {
         { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'Attendance and registration information for DEW 2026' },
         { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Visitor registration and event details for LTE 2026' },
       ],
-      followups: ['When is Digital Education Week?', 'Where are events held?', 'AIinLT 2026 summit']
+      followups: [
+        { type: 'deepen', text: 'When is Digital Education Week?' },
+        { type: 'branch', text: 'Where are events held?' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1488,7 +1534,11 @@ function getResponse(q) {
         { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'Confirmed dates, featured activities, and the weekly schedule' },
         { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'LTE 2026 dates and programme timing' },
       ],
-      followups: ['How do I register?', 'Where are events held?', 'AIinLT 2026 summit']
+      followups: [
+        { type: 'deepen', text: 'How do I register?' },
+        { type: 'branch', text: 'Where are events held?' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1499,7 +1549,11 @@ function getResponse(q) {
         { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'Venue information and practical event details' },
         { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Location and venue details for LTE 2026' },
       ],
-      followups: ['How do I register?', 'Digital Education Week 2026', 'AIinLT 2026 summit']
+      followups: [
+        { type: 'deepen', text: 'How do I register?' },
+        { type: 'branch', text: 'Digital Education Week 2026' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1511,7 +1565,11 @@ function getResponse(q) {
         { title: 'News and stories', section: 'News → Latest', desc: 'Updates and stories on digital education in Hong Kong' },
         { title: 'Resources for teachers', section: 'Resources → Overview', desc: 'Teaching resources and professional development' },
       ],
-      followups: ['Digital Education Week 2026', 'News on digital education', 'Research papers and reports', 'About Digital Education @ HKEdCity']
+      followups: [
+        { type: 'deepen', text: 'Digital Education Week 2026' },
+        { type: 'branch', text: 'News on digital education' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1523,7 +1581,11 @@ function getResponse(q) {
         { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Flagship education expo, part of DEW 2026' },
         { title: 'AIinLT 2026 summit', section: 'Events → AIinLT 2026', desc: 'Summit on AI in language learning and teaching' },
       ],
-      followups: ['How do I register?', 'Learning & Teaching Expo (LTE) 2026', 'AIinLT 2026 summit']
+      followups: [
+        { type: 'deepen', text: 'How do I register?' },
+        { type: 'branch', text: 'Learning & Teaching Expo (LTE) 2026' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1534,7 +1596,11 @@ function getResponse(q) {
         { title: 'Learning & Teaching Expo (LTE) 2026', section: 'Events → LTE 2026', desc: 'Programme information, highlights, and visitor details' },
         { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'The broader DEW programme that LTE 2026 is part of' },
       ],
-      followups: ['AIinLT 2026 summit', 'How do I register?', 'Digital Education Week 2026']
+      followups: [
+        { type: 'deepen', text: 'How do I register?' },
+        { type: 'branch', text: 'AIinLT 2026 summit' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1545,7 +1611,11 @@ function getResponse(q) {
         { title: 'AIinLT 2026 summit', section: 'Events → AIinLT 2026', desc: 'Summit details, sessions, and content on AI in language education' },
         { title: 'Digital Education Week 2026', section: 'Events → DEW 2026', desc: 'The full DEW programme context' },
       ],
-      followups: ['Learning & Teaching Expo (LTE) 2026', 'Research papers and reports', 'News on digital education']
+      followups: [
+        { type: 'deepen', text: 'How do I register?' },
+        { type: 'branch', text: 'Learning & Teaching Expo (LTE) 2026' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1556,7 +1626,11 @@ function getResponse(q) {
         { title: 'News on digital education', section: 'News → Latest', desc: 'Latest updates and stories on digital education in HK' },
         { title: 'Featured articles', section: 'News → Featured', desc: 'In-depth articles on AI in education and key themes' },
       ],
-      followups: ['Research papers and reports', 'About Digital Education @ HKEdCity', 'Teaching resources and professional development']
+      followups: [
+        { type: 'deepen', text: 'Research papers and reports' },
+        { type: 'branch', text: 'About Digital Education @ HKEdCity' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1567,7 +1641,11 @@ function getResponse(q) {
         { title: 'Research papers and reports', section: 'Research → Overview', desc: 'Browse all research papers and reports' },
         { title: 'Research by theme', section: 'Research → Themes', desc: 'Filter by policy, AI in education, and digital learning themes' },
       ],
-      followups: ['News on digital education', 'Teaching resources and professional development', 'What does this website cover?']
+      followups: [
+        { type: 'deepen', text: 'News on digital education' },
+        { type: 'branch', text: 'Teaching resources' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1578,7 +1656,11 @@ function getResponse(q) {
         { title: 'Teaching resources', section: 'Resources → Teaching', desc: 'Practical materials and resources for classroom use' },
         { title: 'Professional development', section: 'Resources → Professional development', desc: 'Learning programmes and opportunities for teachers' },
       ],
-      followups: ['News on digital education', 'Research papers and reports', 'About Digital Education @ HKEdCity']
+      followups: [
+        { type: 'deepen', text: 'Research papers and reports' },
+        { type: 'branch', text: 'Events' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1597,7 +1679,11 @@ function getResponse(q) {
       sources: [
         { title: 'About Digital Education @ HKEdCity', section: 'About → Overview', desc: "What the organisation does and how the site fits in" },
       ],
-      followups: ['Digital Education Week 2026', 'News on digital education', 'Teaching resources and professional development']
+      followups: [
+        { type: 'deepen', text: 'Digital Education Week 2026' },
+        { type: 'branch', text: 'News on digital education' },
+        { type: 'pivot', text: null },
+      ]
     };
   }
 
@@ -1605,7 +1691,9 @@ function getResponse(q) {
     summary: `<p>That's a bit outside what I cover. I'm built to help you navigate <strong>Digital Education @ HKEdCity</strong> — events, news, research, resources, and more.</p><p>Try asking me something specific about the site, or explore a guided path below.</p>`,
     sources: [],
     lowConfidence: true,
-    followups: ['What does this website cover?']
+    followups: [
+      { type: 'deepen', text: 'What does this website cover?' },
+    ]
   };
 }
 
