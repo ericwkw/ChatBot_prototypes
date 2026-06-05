@@ -1175,20 +1175,46 @@ function getRolePivot() {
   return ROLE_PIVOT[selectedRole] || 'What does this website cover?';
 }
 
+// ── Fallback pool — used to backfill slots that are filtered out ──
+// Order represents general interest priority; role-pivot is prepended at runtime
+const FALLBACK_POOL = [
+  'Digital Education Week 2026',
+  'News on digital education',
+  'Research papers and reports',
+  'Teaching resources',
+  'About Digital Education @ HKEdCity',
+  'What does this website cover?',
+  'Learning & Teaching Expo (LTE) 2026',
+  'AIinLT 2026 summit',
+];
+
 // ── Resolve typed followup slots → display strings ──
 // Each followup: { type: 'deepen'|'branch'|'pivot', text: string|null }
 // pivot with text:null is filled by getRolePivot()
-// Already-asked topics and duplicates within the set are suppressed
+// If the intended text was already asked, a fallback is silently substituted
+// so the response always has up to 3 chips
 function resolveFollowups(followups, isLowConfidence) {
   const seen = new Set();
   const result = [];
+
+  // Build ordered fallback list: role pivot first, then general pool
+  const rolePivot = getRolePivot();
+  const fallbacks = [rolePivot, ...FALLBACK_POOL.filter(t => t !== rolePivot)];
+
   for (const f of followups) {
     if (isLowConfidence && result.length >= 1) break;
+
     let text = f.text;
-    if (f.type === 'pivot' && !text) text = getRolePivot();
+    if (f.type === 'pivot' && !text) text = rolePivot;
+    if (!text) continue;
+
+    // If intended text already visited, substitute from fallback pool
+    if (askedTopics.has(text.toLowerCase())) {
+      text = fallbacks.find(fb => !askedTopics.has(fb.toLowerCase()) && !seen.has(fb.toLowerCase())) || null;
+    }
+
     if (!text) continue;
     const key = text.toLowerCase();
-    if (askedTopics.has(key)) continue;
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(text);
