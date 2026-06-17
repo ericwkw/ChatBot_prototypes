@@ -795,6 +795,10 @@ a { color: inherit; text-decoration: none; }
   }
   .chat-panel.open { transform: translateY(0); }
   .launcher { bottom: var(--space-5); right: var(--space-5); }
+  /* Prevent iOS Safari from auto-zooming when the textarea is focused.
+     Safari zooms any input with font-size < 16px; setting it to exactly
+     16px suppresses that behaviour without disabling pinch-to-zoom. */
+  .chat-input { font-size: 16px; }
 }
 
 /* ─── ANIMATIONS ─── */
