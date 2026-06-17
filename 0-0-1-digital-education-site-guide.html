@@ -1446,8 +1446,8 @@ function sendMessage(text) {
     setTimeout(() => {
       clearInterval(typingEl._timer);
       typingEl.remove();
-      renderError(text);
-      scrollDown();
+      const errorEl = renderError(text);
+      scrollToElement(errorEl);
     }, 1400);
     return;
   }
@@ -1456,7 +1456,7 @@ function sendMessage(text) {
     clearInterval(typingEl._timer);
     typingEl.remove();
     const response = getResponse(text.toLowerCase());
-    renderAssistantResponse(response);
+    const responseEl = renderAssistantResponse(response);
 
     // One-time role nudge if user never selected a role
     if(!selectedRole && !roleNudgeShown) {
@@ -1464,7 +1464,7 @@ function sendMessage(text) {
       appendRoleNudge();
     }
 
-    scrollDown();
+    scrollToElement(responseEl);
   }, 900 + Math.random() * 600);
 }
 
@@ -1566,10 +1566,20 @@ function renderAssistantResponse(data) {
       sup.addEventListener('click', () => openCitations(data.sources));
     });
   }
+  return wrap;
 }
 
 function scrollDown() {
   chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// Scroll so the top of an element is visible in the chat body
+function scrollToElement(el) {
+  if(!el) return;
+  const elTop = el.getBoundingClientRect().top;
+  const containerTop = chatBody.getBoundingClientRect().top;
+  const target = chatBody.scrollTop + (elTop - containerTop) - 8;
+  chatBody.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
 }
 
 function resetChat() {
@@ -1637,6 +1647,7 @@ function renderError(originalText) {
       <button class="error-action-btn" onclick="showGuidedPaths()">Browse all topics</button>
     </div>`;
   chatBody.appendChild(wrap);
+  return wrap;
 }
 
 function retryAfterError(btn, originalText) {
