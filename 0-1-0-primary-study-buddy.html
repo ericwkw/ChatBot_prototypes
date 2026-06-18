@@ -20,29 +20,34 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-    html, body {
+    html {
       height: 100%;
+    }
+
+    body {
+      min-height: 100%;
       background: linear-gradient(160deg, #FFE0B2 0%, #FFC0CB 100%);
+      background-attachment: fixed;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       font-family: 'Helvetica Neue', 'PingFang TC', 'Microsoft JhengHei', Arial, sans-serif;
     }
 
     #app {
       width: 100%;
       max-width: 420px;
+      min-height: 100vh;
       height: 100vh;
-      max-height: 900px;
       background: var(--cream);
       overflow: hidden;
       position: relative;
-      border-radius: 0;
       box-shadow: 0 0 60px rgba(0,0,0,0.2);
     }
 
-    @media (min-height: 900px) {
-      #app { border-radius: 40px; height: 900px; }
+    @media (min-width: 480px) {
+      body { align-items: center; padding: 20px 0; }
+      #app { height: min(900px, 100vh); min-height: unset; border-radius: 40px; }
     }
 
     /* ===== SCREENS ===== */
