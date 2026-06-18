@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>奇奇學習夥伴</title>
+  <style>
+    :root {
+      --cream: #FFF9F0;
+      --orange: #FF8C42;
+      --chinese-red: #FF6B6B;
+      --english-teal: #4ECDC4;
+      --math-yellow: #FFD93D;
+      --gs-green: #6BCB77;
+      --text-dark: #2D2D2D;
+      --text-mid: #888;
+      --shadow: 0 4px 20px rgba(0,0,0,0.10);
+      --shadow-strong: 0 6px 24px rgba(0,0,0,0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: linear-gradient(160deg, #FFE0B2 0%, #FFC0CB 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Helvetica Neue', 'PingFang TC', 'Microsoft JhengHei', Arial, sans-serif;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      max-height: 900px;
+      background: var(--cream);
+      overflow: hidden;
+      position: relative;
+      border-radius: 0;
+      box-shadow: 0 0 60px rgba(0,0,0,0.2);
+    }
+
+    @media (min-height: 900px) {
+      #app { border-radius: 40px; height: 900px; }
+    }
+
+    /* ===== SCREENS ===== */
+    .screen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 24px 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: translateX(40px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(0);
+    }
+
+    .screen.exit {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+
+    /* ===== CAT WRAP ===== */
+    .cat-wrap {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cat-wrap.bounce svg {
+      animation: catBounce 2.4s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    .cat-wrap.wiggle svg {
+      animation: catWiggle 0.45s ease-in-out 4;
+    }
+
+    @keyframes catBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(1deg); }
+    }
+
+    @keyframes catWiggle {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(-10deg) scale(1.05); }
+      75% { transform: rotate(10deg) scale(1.05); }
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ===== SPEECH BUBBLE ===== */
+    .speech-bubble {
+      background: white;
+      border-radius: 22px;
+      padding: 14px 20px;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-dark);
+      text-align: center;
+      box-shadow: var(--shadow);
+      position: relative;
+      max-width: 310px;
+      line-height: 1.55;
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-bottom: 12px solid white;
+    }
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .star-pill {
+      background: #FFD93D;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #5A4000;
+      box-shadow: 0 3px 12px rgba(255,193,7,0.45);
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .btn:active { transform: scale(0.93) !important; }
+
+    /* Grade buttons */
+    .grade-btn {
+      width: 100%;
+      padding: 18px 20px;
+      margin: 7px 0;
+      font-size: 22px;
+      font-weight: 700;
+      background: white;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--text-dark);
+    }
+
+    .grade-btn .grade-icon {
+      font-size: 30px;
+      width: 36px;
+      text-align: center;
+    }
+
+    .grade-btn:nth-child(1) { border-left: 6px solid #FF6B6B; }
+    .grade-btn:nth-child(2) { border-left: 6px solid #4ECDC4; }
+    .grade-btn:nth-child(3) { border-left: 6px solid #FFD93D; }
+
+    .grade-btn:hover { box-shadow: var(--shadow-strong); }
+
+    /* Subject cards */
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: 100%;
+    }
+
+    .subject-card {
+      border-radius: 22px;
+      padding: 22px 12px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+      box-shadow: var(--shadow-strong);
+      transition: transform 0.12s ease;
+      font-family: inherit;
+      border: none;
+      aspect-ratio: 1;
+      justify-content: center;
+    }
+
+    .subject-card .sub-icon { font-size: 38px; }
+    .subject-card.chinese  { background: linear-gradient(145deg, #FF8080, #FF4040); }
+    .subject-card.english  { background: linear-gradient(145deg, #5DD6CC, #2AB8AE); }
+    .subject-card.math     { background: linear-gradient(145deg, #FFE066, #FFC107); color: #5A4000; }
+    .subject-card.gs       { background: linear-gradient(145deg, #7ED98A, #43A855); }
+
+    /* Start / CTA button */
+    .cta-btn {
+      width: 100%;
+      padding: 20px;
+      border-radius: 22px;
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFD93D, #FFC107);
+      color: #3A2800;
+      box-shadow: 0 6px 22px rgba(255,193,7,0.5);
+    }
+
+    .cta-btn.home-btn {
+      background: linear-gradient(135deg, #FF8C42, #FF6B00);
+      color: white;
+      box-shadow: 0 6px 22px rgba(255,107,0,0.4);
+    }
+
+    /* Answer buttons */
+    .answers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .answer-btn {
+      padding: 26px 12px;
+      border-radius: 20px;
+      font-size: 30px;
+      font-weight: 800;
+      background: white;
+      color: var(--text-dark);
+      box-shadow: var(--shadow);
+      border: 3px solid transparent;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .answer-btn.correct {
+      background: #E8F9EF;
+      border-color: #43A855;
+      color: #1B5E20;
+      animation: popIn 0.3s ease;
+    }
+
+    .answer-btn.wrong {
+      background: #FFEBEE;
+      border-color: #FF6B6B;
+      color: #B71C1C;
+    }
+
+    .answer-btn:disabled { cursor: not-allowed; }
+
+    /* ===== QUESTION BOX ===== */
+    .question-box {
+      background: white;
+      border-radius: 22px;
+      padding: 22px 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 36px;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+      color: var(--text-dark);
+      flex-shrink: 0;
+    }
+
+    /* ===== PROGRESS DOTS ===== */
+    .progress-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 4px 0;
+    }
+
+    .dot {
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: #DDD;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .dot.done    { background: #FFD93D; transform: scale(1.1); }
+    .dot.current { background: var(--orange); transform: scale(1.25); }
+
+    /* ===== STAR BURST ===== */
+    .star-burst {
+      position: fixed;
+      font-size: 36px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: burstAnim 0.9s ease-out forwards;
+    }
+
+    @keyframes burstAnim {
+      0%   { transform: scale(0) translateY(0);    opacity: 1; }
+      50%  { transform: scale(1.6) translateY(-50px); opacity: 1; }
+      100% { transform: scale(1)   translateY(-110px); opacity: 0; }
+    }
+
+    /* ===== BACK / CLOSE BTN ===== */
+    .back-btn {
+      align-self: flex-start;
+      background: none;
+      border: none;
+      font-size: 15px;
+      color: var(--text-mid);
+      cursor: pointer;
+      padding: 2px 0;
+      margin-bottom: 4px;
+      font-family: inherit;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* ===== RESULT SCREEN ===== */
+    .result-badge-big { font-size: 88px; line-height: 1; }
+    .result-headline  { font-size: 27px; font-weight: 800; color: var(--text-dark); text-align: center; }
+    .result-stars-row { font-size: 32px; letter-spacing: 4px; }
+
+    /* ===== WELCOME TITLE ===== */
+    .welcome-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #AAA;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    /* ===== QUEST SCREEN ===== */
+    .quest-icon-big  { font-size: 68px; line-height: 1; }
+    .quest-title-big { font-size: 26px; font-weight: 800; color: var(--text-dark); text-align: center; }
+    .quest-desc-text {
+      font-size: 15px;
+      color: var(--text-mid);
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    /* ===== GRADE BADGE (home) ===== */
+    .grade-badge {
+      font-size: 13px;
+      color: #BBB;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* ===== SPACER ===== */
+    .spacer { flex: 1; min-height: 8px; }
+
+    /* gap helpers */
+    .gap8  { height: 8px;  flex-shrink: 0; }
+    .gap12 { height: 12px; flex-shrink: 0; }
+    .gap16 { height: 16px; flex-shrink: 0; }
+    .gap20 { height: 20px; flex-shrink: 0; }
+    .gap24 { height: 24px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════════════════════════════════
+       SCREEN 1 · WELCOME
+  ═══════════════════════════════════ -->
+  <div class="screen active" id="screen-welcome">
+    <div class="spacer"></div>
+
+    <p class="welcome-title">奇奇學習夥伴</p>
+
+    <div class="cat-wrap bounce" id="cat-welcome" style="width:170px;height:170px;"></div>
+
+    <div class="gap16"></div>
+
+    <div class="speech-bubble">
+      你好！我係<strong>奇奇</strong>！🐱<br>
+      你係幾年級呀？
+    </div>
+
+    <div class="gap28" style="height:28px;flex-shrink:0;"></div>
+
+    <div style="width:100%;">
+      <button class="btn grade-btn" onclick="selectGrade('P1')">
+        <span class="grade-icon">🌱</span> 小一
+      </button>
+      <button class="btn grade-btn" onclick="selectGrade('P2')">
+        <span class="grade-icon">🌿</span> 小二
+      </button>
+      <button class="btn grade-btn" onclick="selectGrade('P3')">
+        <span class="grade-icon">🌳</span> 小三
+      </button>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN 2 · HOME
+  ═══════════════════════════════════ -->
+  <div class="screen" id="screen-home">
+
+    <div class="top-bar">
+      <div class="star-pill">⭐ <span id="star-home">0</span></div>
+    </div>
+
+    <div class="cat-wrap bounce" id="cat-home" style="width:140px;height:140px;"></div>
+
+    <div class="gap12"></div>
+
+    <div class="speech-bubble" id="home-bubble">今日想練習咩？😸</div>
+
+    <div class="gap20"></div>
+
+    <div class="subjects-grid">
+      <button class="subject-card chinese btn" onclick="selectSubject('chinese')">
+        <span class="sub-icon">📖</span>中文
+      </button>
+      <button class="subject-card english btn" onclick="selectSubject('english')">
+        <span class="sub-icon">🔤</span>英文
+      </button>
+      <button class="subject-card math btn" onclick="selectSubject('math')">
+        <span class="sub-icon">🔢</span>數學
+      </button>
+      <button class="subject-card gs btn" onclick="selectSubject('gs')">
+        <span class="sub-icon">🌍</span>常識
+      </button>
+    </div>
+
+    <div class="spacer"></div>
+    <p class="grade-badge" id="grade-badge"></p>
+    <div class="gap8"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN 3 · QUEST INTRO
+  ═══════════════════════════════════ -->
+  <div class="screen" id="screen-quest">
+    <button class="back-btn btn" onclick="goHome()">← 返回主頁</button>
+
+    <div class="spacer"></div>
+
+    <div class="cat-wrap bounce" id="cat-quest" style="width:140px;height:140px;"></div>
+
+    <div class="gap12"></div>
+
+    <div class="speech-bubble" id="quest-bubble">準備好挑戰數學喇！💪</div>
+
+    <div class="gap20"></div>
+
+    <div class="quest-icon-big" id="quest-icon">🔢</div>
+    <div class="gap8"></div>
+    <div class="quest-title-big" id="quest-title">數學大冒險</div>
+    <div class="gap8"></div>
+    <p class="quest-desc-text" id="quest-desc">一共有 3 條題目<br>每答對一題就得 ⭐ 一粒！</p>
+
+    <div class="spacer"></div>
+
+    <button class="btn cta-btn" onclick="startActivity()">出發！🚀</button>
+    <div class="gap8"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN 4 · ACTIVITY
+  ═══════════════════════════════════ -->
+  <div class="screen" id="screen-activity">
+
+    <div style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <button class="back-btn btn" onclick="goHome()" style="margin:0;">✕ 離開</button>
+      <div class="star-pill">⭐ <span id="star-activity">0</span></div>
+    </div>
+
+    <div class="gap8"></div>
+    <div class="progress-row" id="progress-dots"></div>
+    <div class="gap8"></div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+      <div class="cat-wrap" id="cat-activity" style="width:110px;height:110px;"></div>
+      <div class="gap8"></div>
+      <div class="speech-bubble" id="activity-bubble" style="font-size:16px;">你諗吓先～</div>
+    </div>
+
+    <div class="gap12"></div>
+
+    <div class="question-box" id="question-text">3 + 4 = ?</div>
+
+    <div class="gap14" style="height:14px;flex-shrink:0;"></div>
+
+    <div class="answers-grid" id="answers-grid"></div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SCREEN 5 · RESULT
+  ═══════════════════════════════════ -->
+  <div class="screen" id="screen-result">
+    <div class="spacer"></div>
+
+    <div class="cat-wrap" id="cat-result" style="width:160px;height:160px;"></div>
+    <div class="gap12"></div>
+
+    <div class="speech-bubble" id="result-bubble">你做得好好！🎉</div>
+
+    <div class="gap20"></div>
+
+    <div class="result-badge-big" id="result-badge">🏆</div>
+    <div class="gap8"></div>
+    <div class="result-headline" id="result-headline">全部答啱！超級棒！</div>
+    <div class="gap10" style="height:10px;flex-shrink:0;"></div>
+    <div class="result-stars-row" id="result-stars">⭐⭐⭐</div>
+
+    <div class="spacer"></div>
+
+    <button class="btn cta-btn home-btn" onclick="goHome()" style="width:100%;">
+      返回主頁 🏠
+    </button>
+    <div class="gap16"></div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ═══════════ STATE ═══════════ */
+const state = {
+  grade: 'P1',
+  stars: 0,
+  subject: 'math',
+  qIndex: 0,
+  correct: 0,
+  questions: []
+};
+
+/* ═══════════ QUESTION DATABASE ═══════════ */
+const QB = {
+  P1: { math: [
+    { q: '3 + 4 = ?',     opts: [5,6,7,8],     ans: 7  },
+    { q: '8 − 3 = ?',     opts: [4,5,6,7],     ans: 5  },
+    { q: '2 + 2 + 2 = ?', opts: [4,5,6,7],     ans: 6  },
+  ]},
+  P2: { math: [
+    { q: '15 + 8 = ?',  opts: [21,22,23,24], ans: 23 },
+    { q: '30 − 14 = ?', opts: [14,15,16,17], ans: 16 },
+    { q: '4 × 5 = ?',   opts: [16,18,20,22], ans: 20 },
+  ]},
+  P3: { math: [
+    { q: '6 × 7 = ?',    opts: [40,42,44,46],    ans: 42  },
+    { q: '56 ÷ 8 = ?',   opts: [5,6,7,8],         ans: 7   },
+    { q: '125 + 68 = ?', opts: [191,192,193,194], ans: 193 },
+  ]},
+};
+
+/* ═══════════ CAT SVG ═══════════ */
+function catSVG(mood, size) {
+  size = size || 160;
+
+  const eyes = {
+    happy:       `<path d="M35 64 Q41 56 47 64" stroke="#2D2D2D" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+                  <path d="M73 64 Q79 56 85 64" stroke="#2D2D2D" stroke-width="3.2" fill="none" stroke-linecap="round"/>`,
+    excited:     `<circle cx="41" cy="62" r="7.5" fill="#2D2D2D"/>
+                  <circle cx="79" cy="62" r="7.5" fill="#2D2D2D"/>
+                  <circle cx="44" cy="59" r="2.8" fill="white"/>
+                  <circle cx="82" cy="59" r="2.8" fill="white"/>`,
+    thinking:    `<path d="M35 64 Q41 58 47 64" stroke="#2D2D2D" stroke-width="3" fill="none" stroke-linecap="round"/>
+                  <ellipse cx="79" cy="62" rx="6" ry="5" fill="#2D2D2D"/>
+                  <circle cx="81" cy="60" r="2" fill="white"/>`,
+    proud:       `<path d="M35 65 Q41 57 47 65" stroke="#2D2D2D" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+                  <path d="M73 65 Q79 57 85 65" stroke="#2D2D2D" stroke-width="3.2" fill="none" stroke-linecap="round"/>`,
+    encouraging: `<ellipse cx="41" cy="62" rx="6.5" ry="5.5" fill="#2D2D2D"/>
+                  <ellipse cx="79" cy="62" rx="6.5" ry="5.5" fill="#2D2D2D"/>
+                  <circle cx="43" cy="60" r="2.2" fill="white"/>
+                  <circle cx="81" cy="60" r="2.2" fill="white"/>`,
+  };
+
+  const mouths = {
+    happy:       `<path d="M47 79 Q60 90 73 79" stroke="#2D2D2D" stroke-width="2.8" fill="none" stroke-linecap="round"/>`,
+    excited:     `<path d="M46 79 Q60 95 74 79" stroke="#2D2D2D" stroke-width="3" fill="#FFB6B6" stroke-linecap="round"/>`,
+    thinking:    `<path d="M50 80 Q60 84 70 79" stroke="#2D2D2D" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    proud:       `<path d="M46 79 Q60 93 74 79" stroke="#2D2D2D" stroke-width="3" fill="#FFB6B6" stroke-linecap="round"/>`,
+    encouraging: `<path d="M48 79 Q60 88 72 79" stroke="#2D2D2D" stroke-width="2.8" fill="none" stroke-linecap="round"/>`,
+  };
+
+  const extras = {
+    excited:     `<text x="84" y="34" font-size="17">✨</text>`,
+    thinking:    `<text x="80" y="30" font-size="19">🤔</text>`,
+    proud:       `<text x="84" y="32" font-size="17">⭐</text>`,
+    encouraging: `<text x="84" y="34" font-size="17">💪</text>`,
+    happy:       '',
+  };
+
+  return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    <!-- Drop shadow -->
+    <ellipse cx="60" cy="118" rx="34" ry="5" fill="rgba(0,0,0,0.07)"/>
+    <!-- Body -->
+    <circle cx="60" cy="68" r="46" fill="#F4A460"/>
+    <!-- Ear left -->
+    <polygon points="20,44 8,12 40,38" fill="#F4A460"/>
+    <polygon points="23,42 14,18 37,36" fill="#FFB6C1"/>
+    <!-- Ear right -->
+    <polygon points="100,44 112,12 80,38" fill="#F4A460"/>
+    <polygon points="97,42 106,18 83,36" fill="#FFB6C1"/>
+    <!-- Face -->
+    <circle cx="60" cy="68" r="37" fill="#F9C88A"/>
+    <!-- Forehead stripes -->
+    <path d="M51 32 Q55 26 59 32" stroke="#D48040" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M57 30 Q60 24 63 30" stroke="#D48040" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M63 32 Q67 26 71 32" stroke="#D48040" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <!-- Eyes -->
+    ${eyes[mood] || eyes.happy}
+    <!-- Nose -->
+    <ellipse cx="60" cy="74" rx="5.5" ry="4.5" fill="#FF9999"/>
+    <ellipse cx="58" cy="72.5" rx="2" ry="1.5" fill="rgba(255,255,255,0.55)"/>
+    <!-- Mouth -->
+    ${mouths[mood] || mouths.happy}
+    <!-- Cheeks -->
+    <ellipse cx="28" cy="80" rx="13" ry="9" fill="#FFB6C1" opacity="0.45"/>
+    <ellipse cx="92" cy="80" rx="13" ry="9" fill="#FFB6C1" opacity="0.45"/>
+    <!-- Whiskers left -->
+    <line x1="10" y1="70" x2="49" y2="73" stroke="#BBA" stroke-width="1.4" opacity="0.6"/>
+    <line x1="10" y1="76" x2="49" y2="76" stroke="#BBA" stroke-width="1.4" opacity="0.6"/>
+    <line x1="12" y1="82" x2="49" y2="79" stroke="#BBA" stroke-width="1.4" opacity="0.6"/>
+    <!-- Whiskers right -->
+    <line x1="71" y1="73" x2="110" y2="70" stroke="#BBA" stroke-width="1.4" opacity="0.6"/>
+    <line x1="71" y1="76" x2="110" y2="76" stroke="#BBA" stroke-width="1.4" opacity="0.6"/>
+    <line x1="71" y1="79" x2="108" y2="82" stroke="#BBA" stroke-width="1.4" opacity="0.6"/>
+    <!-- Extras -->
+    ${extras[mood] || ''}
+  </svg>`;
+}
+
+function setCat(id, mood, size) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = catSVG(mood, size);
+}
+
+function setCatWiggle(id, mood, size) {
+  setCat(id, mood, size);
+  const el = document.getElementById(id);
+  el.classList.remove('bounce');
+  el.classList.remove('wiggle');
+  void el.offsetWidth;
+  el.classList.add('wiggle');
+  setTimeout(() => { el.classList.remove('wiggle'); el.classList.add('bounce'); }, 2000);
+}
+
+/* ═══════════ SCREEN TRANSITIONS ═══════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    if (s.classList.contains('active')) {
+      s.classList.add('exit');
+      s.classList.remove('active');
+      setTimeout(() => s.classList.remove('exit'), 350);
+    }
+  });
+  setTimeout(() => {
+    document.getElementById(id).classList.add('active');
+  }, 160);
+}
+
+/* ═══════════ STAR BURST ═══════════ */
+function burstStar(btn) {
+  const r = btn.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'star-burst';
+  el.textContent = '⭐';
+  el.style.left = (r.left + r.width / 2 - 18) + 'px';
+  el.style.top  = (r.top + r.height / 2) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
+
+/* ═══════════ GRADE SELECT ═══════════ */
+function selectGrade(g) {
+  state.grade = g;
+  state.stars  = 0;
+  const labels = { P1: '小一', P2: '小二', P3: '小三' };
+  document.getElementById('grade-badge').textContent = labels[g] + ' 同學 👋';
+  document.getElementById('home-bubble').textContent = labels[g] + '同學，今日想練習咩？😸';
+  document.getElementById('star-home').textContent = '0';
+  setCat('cat-home', 'happy', 140);
+  setCatWiggle('cat-welcome', 'excited', 170);
+  setTimeout(() => showScreen('screen-home'), 400);
+}
+
+/* ═══════════ SUBJECT SELECT ═══════════ */
+const COMING_SOON = { chinese: '中文', english: '英文', gs: '常識' };
+
+function selectSubject(sub) {
+  if (sub !== 'math') {
+    const name = COMING_SOON[sub];
+    document.getElementById('home-bubble').textContent = name + '練習快啲嚟喇！先試試數學！😸';
+    setCatWiggle('cat-home', 'encouraging', 140);
+    return;
+  }
+  state.subject = sub;
+  const labels = { P1: '小一', P2: '小二', P3: '小三' };
+  document.getElementById('quest-bubble').textContent = '準備好數學大冒險喇！💪';
+  document.getElementById('quest-icon').textContent  = '🔢';
+  document.getElementById('quest-title').textContent = '數學大冒險';
+  document.getElementById('quest-desc').innerHTML =
+    labels[state.grade] + ' 程度 · 共 3 條題目<br>每答對一題得 ⭐ 一粒！';
+  setCat('cat-quest', 'excited', 140);
+  showScreen('screen-quest');
+}
+
+/* ═══════════ START ACTIVITY ═══════════ */
+function startActivity() {
+  state.qIndex   = 0;
+  state.correct  = 0;
+  state.questions = QB[state.grade].math;
+  renderQuestion();
+  showScreen('screen-activity');
+}
+
+/* ═══════════ RENDER QUESTION ═══════════ */
+function renderQuestion() {
+  const q     = state.questions[state.qIndex];
+  const total = state.questions.length;
+
+  /* progress dots */
+  document.getElementById('progress-dots').innerHTML =
+    state.questions.map((_, i) => {
+      let cls = 'dot';
+      if (i < state.qIndex)  cls += ' done';
+      if (i === state.qIndex) cls += ' current';
+      return `<div class="${cls}"></div>`;
+    }).join('');
+
+  /* question text */
+  document.getElementById('question-text').textContent = q.q;
+
+  /* star counters */
+  document.getElementById('star-activity').textContent = state.stars;
+
+  /* cat */
+  setCat('cat-activity', 'thinking', 110);
+
+  /* bubble */
+  document.getElementById('activity-bubble').textContent = '你諗吓先～🤔';
+
+  /* answer buttons */
+  document.getElementById('answers-grid').innerHTML =
+    q.opts.map(o =>
+      `<button class="answer-btn btn" onclick="checkAnswer(${o}, this)">${o}</button>`
+    ).join('');
+}
+
+/* ═══════════ CHECK ANSWER ═══════════ */
+function checkAnswer(val, btn) {
+  const q = state.questions[state.qIndex];
+  document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+
+  if (val === q.ans) {
+    btn.classList.add('correct');
+    state.stars++;
+    state.correct++;
+    document.getElementById('star-activity').textContent = state.stars;
+    document.getElementById('star-home').textContent     = state.stars;
+    setCatWiggle('cat-activity', 'excited', 110);
+    document.getElementById('activity-bubble').textContent = '叻叻呀！答啱咗！🎉';
+    burstStar(btn);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.answer-btn').forEach(b => {
+      if (parseInt(b.textContent) === q.ans) b.classList.add('correct');
+    });
+    setCat('cat-activity', 'encouraging', 110);
+    document.getElementById('activity-bubble').textContent =
+      `係 ${q.ans} 呀！唔緊要，繼續努力！💪`;
+  }
+
+  setTimeout(() => {
+    state.qIndex++;
+    if (state.qIndex < state.questions.length) {
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }, 1900);
+}
+
+/* ═══════════ SHOW RESULT ═══════════ */
+function showResult() {
+  const c = state.correct;
+  const t = state.questions.length;
+
+  let badge, headline, bubble, catMood;
+  if (c === t) {
+    badge = '🏆'; headline = '全部答啱！超級棒！';
+    bubble = '你真係好叻！奇奇好開心！🎉'; catMood = 'proud';
+  } else if (c >= 2) {
+    badge = '🌟'; headline = `答啱 ${c} 題，做得好！`;
+    bubble = '再練習幾次就完美喇！加油！'; catMood = 'happy';
+  } else {
+    badge = '💪'; headline = '繼續努力，你可以嘅！';
+    bubble = '唔緊要！奇奇陪你一齊學！😸'; catMood = 'encouraging';
+  }
+
+  document.getElementById('result-badge').textContent   = badge;
+  document.getElementById('result-headline').textContent = headline;
+  document.getElementById('result-bubble').textContent  = bubble;
+  document.getElementById('result-stars').textContent   = '⭐'.repeat(c) + '🔘'.repeat(t - c);
+  setCat('cat-result', catMood, 160);
+  showScreen('screen-result');
+}
+
+/* ═══════════ NAV HELPERS ═══════════ */
+function goHome() {
+  setCat('cat-home', 'happy', 140);
+  document.getElementById('home-bubble').textContent = '今日想練習咩？😸';
+  showScreen('screen-home');
+}
+
+/* ═══════════ INIT ═══════════ */
+setCat('cat-welcome', 'happy',       170);
+setCat('cat-home',    'happy',       140);
+setCat('cat-quest',   'excited',     140);
+setCat('cat-activity','thinking',    110);
+setCat('cat-result',  'proud',       160);
+</script>
+</body>
+</html>
