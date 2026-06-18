@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>奇奇學習夥伴 · 3D</title>
+  <style>
+    :root {
+      --gold:      #FFD700;
+      --gold-dark: #996600;
+      --gold-deep: #5A3A00;
+      --purple-1:  #0d0030;
+      --purple-2:  #1a0a5e;
+      --purple-3:  #2d1b8e;
+      --purple-ui: rgba(60,30,120,0.85);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Helvetica Neue','PingFang TC','Microsoft JhengHei',Arial,sans-serif;
+      overflow: hidden;
+    }
+
+    /* ─────── SKY BACKGROUND ─────── */
+    #sky {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(180deg,
+        #050015 0%, #0d0035 25%, #1a0a5e 55%, #2d1b8e 80%, #3a2aaa 100%);
+      overflow: hidden;
+    }
+
+    #stars-canvas {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+
+    /* CSS clouds */
+    .cloud {
+      position: absolute;
+      border-radius: 50px;
+      background: rgba(255,255,255,0.07);
+      animation: drift linear infinite;
+    }
+    .cloud::before, .cloud::after {
+      content: ''; position: absolute;
+      background: rgba(255,255,255,0.07);
+      border-radius: 50%;
+    }
+    @keyframes drift {
+      from { transform: translateX(-260px); }
+      to   { transform: translateX(calc(100vw + 260px)); }
+    }
+
+    /* Horizon glow */
+    #horizon {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 35%;
+      background: linear-gradient(to top,
+        rgba(80,40,180,0.55) 0%,
+        rgba(40,10,100,0.2) 60%,
+        transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Floating island */
+    #island {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 340px; height: 100px; pointer-events: none;
+    }
+
+    /* ─────── APP SHELL ─────── */
+    body { display: flex; justify-content: center; align-items: flex-start; }
+
+    #app {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 420px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @media (min-width: 480px) {
+      body { align-items: center; }
+      #app { height: min(860px, 100vh); border-radius: 36px;
+             box-shadow: 0 0 80px rgba(80,40,200,0.6); }
+    }
+
+    /* ─────── SCREENS ─────── */
+    .screen {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px 20px 16px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: translateX(44px);
+      overflow-y: auto; overflow-x: hidden;
+    }
+    .screen.active  { opacity: 1; pointer-events: all; transform: translateX(0); }
+    .screen.exit    { opacity: 0; transform: translateX(-44px); }
+
+    /* ─────── HUD BAR ─────── */
+    .hud {
+      width: 100%; display: flex; align-items: center;
+      justify-content: flex-end; flex-shrink: 0; margin-bottom: 2px;
+    }
+    .star-gem {
+      background: linear-gradient(135deg, #FFE566, #FFB800, #FF8C00);
+      border: 2px solid rgba(255,255,255,0.45);
+      border-radius: 22px; padding: 6px 16px;
+      font-size: 15px; font-weight: 900; color: #3A1800;
+      box-shadow: 0 5px 0 var(--gold-dark), 0 8px 16px rgba(0,0,0,0.5);
+      letter-spacing: 0.5px;
+    }
+
+    /* ─────── GAME TITLE ─────── */
+    .game-title {
+      font-size: 28px; font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(255,215,0,0.9), 0 2px 0 var(--gold-dark),
+                   0 4px 0 var(--gold-deep), 0 6px 12px rgba(0,0,0,0.8);
+      letter-spacing: 1.5px; text-align: center;
+    }
+    .game-sub {
+      font-size: 12px; font-weight: 700; letter-spacing: 2.5px;
+      color: rgba(255,215,0,0.55); text-transform: uppercase; text-align: center;
+    }
+
+    /* ─────── SPEECH BUBBLE ─────── */
+    .bubble {
+      background: linear-gradient(180deg, rgba(255,255,255,0.97), rgba(230,225,255,0.97));
+      border: 2.5px solid rgba(255,215,0,0.65);
+      border-radius: 20px; padding: 12px 18px;
+      font-size: 16px; font-weight: 700; color: #180840;
+      text-align: center; line-height: 1.55; max-width: 300px;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.4),
+                  inset 0 1px 0 rgba(255,255,255,0.9);
+      position: relative;
+    }
+    .bubble::after {
+      content: ''; position: absolute; top: -12px; left: 50%;
+      transform: translateX(-50%);
+      border: 11px solid transparent; border-bottom-color: rgba(255,215,0,0.65);
+      border-top: 0;
+    }
+    .bubble::before {
+      content: ''; position: absolute; top: -8px; left: 50%;
+      transform: translateX(-50%); z-index: 1;
+      border: 9px solid transparent;
+      border-bottom-color: rgba(255,255,255,0.97); border-top: 0;
+    }
+
+    /* ─────── 3D BUTTONS ─────── */
+    .btn {
+      border: none; cursor: pointer; font-family: inherit; font-weight: 900;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .btn:active { transform: translateY(5px) !important; }
+
+    /* Grade buttons */
+    .grade-btns { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+
+    .gbtn {
+      width: 100%; padding: 16px 20px; border-radius: 18px;
+      font-size: 21px; display: flex; align-items: center; gap: 14px;
+      color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+      position: relative; overflow: hidden;
+    }
+    .gbtn::before { /* gloss */
+      content: ''; position: absolute; top: 3px; left: 8px; right: 8px;
+      height: 38%; border-radius: 12px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.38), transparent);
+      pointer-events: none;
+    }
+    .gbtn.p1 {
+      background: linear-gradient(180deg, #ff7070 0%, #dd2222 55%, #bb0000 100%);
+      box-shadow: 0 7px 0 #770000, 0 10px 22px rgba(0,0,0,0.55);
+    }
+    .gbtn.p2 {
+      background: linear-gradient(180deg, #50d8ce 0%, #25a09a 55%, #147870 100%);
+      box-shadow: 0 7px 0 #085048, 0 10px 22px rgba(0,0,0,0.55);
+    }
+    .gbtn.p3 {
+      background: linear-gradient(180deg, #ffe566 0%, #ffbf00 55%, #ff9500 100%);
+      color: #3a2000; text-shadow: 0 1px 2px rgba(255,255,255,0.3);
+      box-shadow: 0 7px 0 #bb6600, 0 10px 22px rgba(0,0,0,0.55);
+    }
+    .gbtn:active.p1 { box-shadow: 0 2px 0 #770000, 0 3px 8px rgba(0,0,0,0.4); }
+    .gbtn:active.p2 { box-shadow: 0 2px 0 #085048, 0 3px 8px rgba(0,0,0,0.4); }
+    .gbtn:active.p3 { box-shadow: 0 2px 0 #bb6600, 0 3px 8px rgba(0,0,0,0.4); }
+    .gi { font-size: 26px; width: 30px; text-align: center; flex-shrink: 0; }
+
+    /* Subject cards */
+    .subj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+
+    .scard {
+      border-radius: 22px; padding: 18px 10px 14px;
+      display: flex; flex-direction: column; align-items: center; gap: 7px;
+      font-size: 19px; font-weight: 900; color: white; aspect-ratio: 1;
+      justify-content: center; position: relative; overflow: hidden;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .scard::before {
+      content: ''; position: absolute; top: 4px; left: 8px; right: 8px;
+      height: 34%; border-radius: 14px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent);
+      pointer-events: none;
+    }
+    .scard .si { font-size: 36px; }
+    .scard.ch {
+      background: linear-gradient(150deg, #ff7070, #cc0020);
+      box-shadow: 0 7px 0 #880010, 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .scard.en {
+      background: linear-gradient(150deg, #50c8ff, #0066dd);
+      box-shadow: 0 7px 0 #0044aa, 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .scard.ma {
+      background: linear-gradient(150deg, #ffe566, #ff9500);
+      color: #3a2000; text-shadow: 0 1px 2px rgba(255,255,255,0.2);
+      box-shadow: 0 7px 0 #bb6600, 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .scard.gs {
+      background: linear-gradient(150deg, #80ee90, #1aaa40);
+      box-shadow: 0 7px 0 #0a7020, 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .scard:active { transform: translateY(5px);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.4) !important; }
+
+    /* CTA / launch button */
+    .cta {
+      width: 100%; padding: 18px; border-radius: 20px;
+      font-size: 22px; font-weight: 900;
+      background: linear-gradient(180deg, #ffe870 0%, #ffd700 45%, #ffaa00 100%);
+      color: #3a2000; text-shadow: 0 1px 2px rgba(255,255,255,0.4);
+      box-shadow: 0 8px 0 var(--gold-dark), 0 12px 26px rgba(0,0,0,0.55);
+      border: 2px solid rgba(255,255,255,0.4);
+      position: relative; overflow: hidden;
+    }
+    .cta::before {
+      content: ''; position: absolute; top: 4px; left: 10px; right: 10px;
+      height: 34%; border-radius: 14px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+      pointer-events: none;
+    }
+    .cta:active { box-shadow: 0 2px 0 var(--gold-dark), 0 4px 10px rgba(0,0,0,0.4); }
+
+    .cta-home {
+      background: linear-gradient(180deg, #a070f0 0%, #7040d0 45%, #4a20a8 100%);
+      color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 0 #2a0a80, 0 12px 26px rgba(0,0,0,0.55);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .cta-home:active { box-shadow: 0 2px 0 #2a0a80, 0 4px 10px rgba(0,0,0,0.4); }
+
+    /* Answer buttons */
+    .ans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+
+    .abtn {
+      padding: 22px 10px; border-radius: 18px; font-size: 28px; font-weight: 900;
+      background: linear-gradient(180deg, #6848b0 0%, #4428a0 55%, #2c188a 100%);
+      color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      box-shadow: 0 6px 0 #100860, 0 8px 18px rgba(0,0,0,0.55);
+      border: 2px solid rgba(255,255,255,0.12);
+      position: relative; overflow: hidden;
+      transition: transform 0.08s, box-shadow 0.08s;
+    }
+    .abtn::before {
+      content: ''; position: absolute; top: 3px; left: 7px; right: 7px;
+      height: 30%; border-radius: 10px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.22), transparent);
+      pointer-events: none;
+    }
+    .abtn:active { transform: translateY(5px); box-shadow: 0 1px 0 #100860, 0 3px 8px rgba(0,0,0,0.4); }
+    .abtn:disabled { cursor: not-allowed; }
+    .abtn.correct {
+      background: linear-gradient(180deg, #80ee90 0%, #30cc50 55%, #18aa30 100%);
+      box-shadow: 0 6px 0 #0a6620, 0 8px 18px rgba(0,0,0,0.4);
+      animation: correctPop 0.28s ease;
+    }
+    .abtn.wrong {
+      background: linear-gradient(180deg, #ff7070 0%, #dd2222 55%, #bb0000 100%);
+      box-shadow: 0 6px 0 #770000, 0 8px 18px rgba(0,0,0,0.4);
+    }
+    @keyframes correctPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08) translateY(-3px); }
+      100% { transform: scale(1); }
+    }
+
+    /* Question box */
+    .qbox {
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 2px solid rgba(255,215,0,0.4);
+      border-radius: 20px; padding: 20px; width: 100%;
+      text-align: center; font-size: 34px; font-weight: 900;
+      color: white;
+      text-shadow: 0 0 20px rgba(255,215,0,0.7), 0 2px 6px rgba(0,0,0,0.9);
+      box-shadow: inset 0 2px 12px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+
+    /* Progress dots */
+    .prog-row { display: flex; gap: 10px; justify-content: center; }
+    .pdot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      border: 2px solid rgba(255,255,255,0.25);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+      transition: all 0.3s;
+    }
+    .pdot.done {
+      background: radial-gradient(circle at 38% 35%, #FFEE88, #FFD700);
+      border-color: var(--gold-dark);
+      box-shadow: 0 0 10px rgba(255,215,0,0.8), 0 2px 0 rgba(0,0,0,0.3);
+    }
+    .pdot.current {
+      background: radial-gradient(circle at 38% 35%, #fff, #FFD700);
+      border-color: var(--gold);
+      box-shadow: 0 0 14px rgba(255,215,0,1), 0 2px 0 rgba(0,0,0,0.3);
+      animation: pdotPulse 1s ease-in-out infinite;
+    }
+    @keyframes pdotPulse {
+      0%,100% { transform: scale(1); }
+      50%     { transform: scale(1.35); }
+    }
+
+    /* Quest panel */
+    .qpanel {
+      background: linear-gradient(160deg, rgba(80,45,160,0.75), rgba(30,10,90,0.85));
+      border: 2px solid rgba(255,215,0,0.35);
+      border-radius: 24px; padding: 20px; width: 100%; text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 24px rgba(0,0,0,0.45);
+    }
+    .qi  { font-size: 58px; line-height: 1; }
+    .qt  { font-size: 23px; font-weight: 900; color: var(--gold); margin-top: 8px;
+           text-shadow: 0 0 16px rgba(255,215,0,0.7), 0 2px 4px rgba(0,0,0,0.8); }
+    .qd  { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 8px; line-height: 1.7; }
+
+    /* Result */
+    .rbadge { font-size: 84px; line-height: 1;
+              filter: drop-shadow(0 0 22px rgba(255,215,0,0.9)); }
+    .rheadline {
+      font-size: 26px; font-weight: 900; color: var(--gold); text-align: center;
+      text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 2px 0 var(--gold-dark),
+                   0 4px 0 var(--gold-deep);
+    }
+    .rstars { font-size: 30px; letter-spacing: 4px;
+              filter: drop-shadow(0 0 8px rgba(255,215,0,0.7)); }
+
+    /* Back / close nav */
+    .nav-back {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px; padding: 6px 13px;
+      font-size: 13px; color: rgba(255,255,255,0.75);
+      cursor: pointer; font-family: inherit; font-weight: 700; flex-shrink: 0;
+    }
+
+    /* Grade badge footer */
+    .gbadge { font-size: 12px; color: rgba(255,255,255,0.3); font-weight: 600; }
+
+    /* Star burst */
+    .star-burst {
+      position: fixed; font-size: 30px; pointer-events: none; z-index: 9999;
+      animation: burstUp 0.9s ease-out forwards;
+    }
+    @keyframes burstUp {
+      0%   { transform: scale(0)   translateY(0);    opacity: 1; }
+      50%  { transform: scale(1.8) translateY(-55px); opacity: 1; }
+      100% { transform: scale(1)   translateY(-115px); opacity: 0; }
+    }
+
+    /* Cat animations */
+    .cat-bounce svg { animation: catBounce 2.4s ease-in-out infinite; transform-origin: bottom; }
+    .cat-wiggle svg { animation: catWiggle 0.44s ease-in-out 4; }
+    @keyframes catBounce {
+      0%,100% { transform: translateY(0) rotate(0deg);   }
+      50%     { transform: translateY(-10px) rotate(1deg); }
+    }
+    @keyframes catWiggle {
+      0%,100% { transform: rotate(0deg)  scale(1);    }
+      25%     { transform: rotate(-10deg) scale(1.06); }
+      75%     { transform: rotate(10deg)  scale(1.06); }
+    }
+
+    /* Layout helpers */
+    .spacer { flex: 1; min-height: 8px; }
+    .g4  { height: 4px;  flex-shrink: 0; }
+    .g8  { height: 8px;  flex-shrink: 0; }
+    .g12 { height: 12px; flex-shrink: 0; }
+    .g16 { height: 16px; flex-shrink: 0; }
+    .g20 { height: 20px; flex-shrink: 0; }
+    .g24 { height: 24px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ SKY ═══ -->
+<div id="sky">
+  <canvas id="stars-canvas"></canvas>
+
+  <!-- Clouds (animated) -->
+  <div class="cloud" style="width:130px;height:44px;top:12%;--dur:28s;animation-delay:-5s">
+    <div style="position:absolute;width:70px;height:70px;top:-38px;left:16px;background:rgba(255,255,255,0.07);border-radius:50%"></div>
+    <div style="position:absolute;width:50px;height:50px;top:-28px;left:64px;background:rgba(255,255,255,0.07);border-radius:50%"></div>
+  </div>
+  <div class="cloud" style="width:90px;height:32px;top:28%;--dur:38s;animation-delay:-18s">
+    <div style="position:absolute;width:50px;height:50px;top:-26px;left:10px;background:rgba(255,255,255,0.07);border-radius:50%"></div>
+    <div style="position:absolute;width:36px;height:36px;top:-18px;left:48px;background:rgba(255,255,255,0.07);border-radius:50%"></div>
+  </div>
+  <div class="cloud" style="width:160px;height:50px;top:45%;--dur:50s;animation-delay:-30s">
+    <div style="position:absolute;width:80px;height:80px;top:-42px;left:20px;background:rgba(255,255,255,0.06);border-radius:50%"></div>
+    <div style="position:absolute;width:58px;height:58px;top:-32px;left:84px;background:rgba(255,255,255,0.06);border-radius:50%"></div>
+  </div>
+
+  <div id="horizon"></div>
+
+  <!-- Floating island SVG -->
+  <svg id="island" viewBox="0 0 340 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+    <defs>
+      <radialGradient id="islandGrad" cx="50%" cy="40%" r="55%">
+        <stop offset="0%"   stop-color="#5a3a8e"/>
+        <stop offset="100%" stop-color="#1a0a40"/>
+      </radialGradient>
+      <linearGradient id="grassGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#6a3fc0"/>
+        <stop offset="100%" stop-color="#4a2a90"/>
+      </linearGradient>
+    </defs>
+    <!-- Island body -->
+    <ellipse cx="170" cy="75" rx="155" ry="28" fill="url(#islandGrad)"/>
+    <!-- Grass / top surface -->
+    <ellipse cx="170" cy="60" rx="155" ry="22" fill="url(#grassGrad)"/>
+    <!-- Surface detail bumps -->
+    <ellipse cx="80"  cy="58" rx="25" ry="8" fill="rgba(255,255,255,0.04)"/>
+    <ellipse cx="260" cy="58" rx="20" ry="6" fill="rgba(255,255,255,0.04)"/>
+    <!-- Glowing edge -->
+    <ellipse cx="170" cy="60" rx="155" ry="22" fill="none"
+             stroke="rgba(160,120,255,0.4)" stroke-width="2"/>
+    <!-- Bottom shadow fade -->
+    <ellipse cx="170" cy="88" rx="130" ry="14" fill="rgba(0,0,20,0.35)"/>
+    <!-- Tiny sparkles -->
+    <circle cx="60"  cy="52" r="2" fill="rgba(255,215,0,0.7)"/>
+    <circle cx="220" cy="50" r="1.5" fill="rgba(255,215,0,0.6)"/>
+    <circle cx="290" cy="54" r="1.5" fill="rgba(200,150,255,0.8)"/>
+    <circle cx="140" cy="48" r="1.2" fill="rgba(255,255,255,0.7)"/>
+  </svg>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+  <!-- ══ SCREEN 1 · WELCOME ══ -->
+  <div class="screen active" id="s-welcome">
+    <div class="spacer"></div>
+    <div class="game-sub">奇奇學習夥伴</div>
+    <div class="g4"></div>
+    <div class="game-title">奇奇陪你學！</div>
+    <div class="g16"></div>
+
+    <div class="cat-bounce" id="c-welcome" style="width:170px;height:170px;"></div>
+
+    <div class="g16"></div>
+    <div class="bubble" id="b-welcome">
+      你好！我係<strong>奇奇</strong>！🐱<br>你係幾年級呀？
+    </div>
+    <div class="g24"></div>
+
+    <div class="grade-btns">
+      <button class="btn gbtn p1" onclick="selectGrade('P1')">
+        <span class="gi">🌱</span> 小一
+      </button>
+      <button class="btn gbtn p2" onclick="selectGrade('P2')">
+        <span class="gi">🌿</span> 小二
+      </button>
+      <button class="btn gbtn p3" onclick="selectGrade('P3')">
+        <span class="gi">🌳</span> 小三
+      </button>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ══ SCREEN 2 · HOME ══ -->
+  <div class="screen" id="s-home">
+    <div class="hud">
+      <div class="star-gem">⭐ <span id="st-home">0</span></div>
+    </div>
+
+    <div class="cat-bounce" id="c-home" style="width:140px;height:140px;"></div>
+    <div class="g12"></div>
+    <div class="bubble" id="b-home">今日想練習咩？😸</div>
+    <div class="g20"></div>
+
+    <div class="subj-grid">
+      <button class="btn scard ch" onclick="pickSubject('ch')">
+        <span class="si">📖</span>中文
+      </button>
+      <button class="btn scard en" onclick="pickSubject('en')">
+        <span class="si">🔤</span>英文
+      </button>
+      <button class="btn scard ma" onclick="pickSubject('ma')">
+        <span class="si">🔢</span>數學
+      </button>
+      <button class="btn scard gs" onclick="pickSubject('gs')">
+        <span class="si">🌍</span>常識
+      </button>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="gbadge" id="b-grade"></div>
+    <div class="g8"></div>
+  </div>
+
+  <!-- ══ SCREEN 3 · QUEST ══ -->
+  <div class="screen" id="s-quest">
+    <button class="nav-back btn" onclick="goHome()">← 返回主頁</button>
+    <div class="spacer"></div>
+
+    <div class="cat-bounce" id="c-quest" style="width:140px;height:140px;"></div>
+    <div class="g12"></div>
+    <div class="bubble" id="b-quest">準備好數學大冒險喇！💪</div>
+    <div class="g20"></div>
+
+    <div class="qpanel">
+      <div class="qi" id="q-icon">🔢</div>
+      <div class="qt" id="q-title">數學大冒險</div>
+      <div class="qd" id="q-desc">小一程度 · 共 3 條題目<br>每答啱一題就得 ⭐ 一粒！</div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn cta" onclick="startActivity()">出發！🚀</button>
+    <div class="g8"></div>
+  </div>
+
+  <!-- ══ SCREEN 4 · ACTIVITY ══ -->
+  <div class="screen" id="s-act">
+    <div style="width:100%;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <button class="nav-back btn" onclick="goHome()">✕ 離開</button>
+      <div class="star-gem">⭐ <span id="st-act">0</span></div>
+    </div>
+
+    <div class="g8"></div>
+    <div class="prog-row" id="prog"></div>
+    <div class="g8"></div>
+
+    <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+      <div class="cat-bounce" id="c-act" style="width:110px;height:110px;"></div>
+      <div class="g8"></div>
+      <div class="bubble" id="b-act" style="font-size:15px;">你諗吓先～🤔</div>
+    </div>
+
+    <div class="g12"></div>
+    <div class="qbox" id="q-text">3 + 4 = ?</div>
+    <div class="g12"></div>
+    <div class="ans-grid" id="ans"></div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ══ SCREEN 5 · RESULT ══ -->
+  <div class="screen" id="s-result">
+    <div class="spacer"></div>
+    <div id="c-result" style="width:160px;height:160px;"></div>
+    <div class="g12"></div>
+    <div class="bubble" id="b-result">你做得好好！🎉</div>
+    <div class="g20"></div>
+    <div class="rbadge" id="r-badge">🏆</div>
+    <div class="g8"></div>
+    <div class="rheadline" id="r-headline">全部答啱！超級棒！</div>
+    <div class="g10" style="height:10px;flex-shrink:0;"></div>
+    <div class="rstars"  id="r-stars">⭐⭐⭐</div>
+    <div class="spacer"></div>
+    <button class="btn cta cta-home" onclick="goHome()" style="width:100%;">返回主頁 🏠</button>
+    <div class="g16"></div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ══════════════ STARS ══════════════ */
+(function(){
+  const c = document.getElementById('stars-canvas');
+  const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; drawStars(); };
+  function drawStars(){
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    for(let i=0;i<220;i++){
+      const x = Math.random()*c.width;
+      const y = Math.random()*c.height*0.75;
+      const r = Math.random()*1.5+0.3;
+      const a = Math.random()*0.7+0.3;
+      ctx.beginPath();
+      ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${a})`;
+      ctx.fill();
+    }
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  /* twinkle */
+  setInterval(()=>{ drawStars(); }, 4000);
+})();
+
+/* ══════════════ STATE ══════════════ */
+const S = { grade:'P1', stars:0, qIdx:0, correct:0, questions:[] };
+
+/* ══════════════ QUESTIONS ══════════════ */
+const QB = {
+  P1:{ ma:[
+    { q:'3 + 4 = ?',     opts:[5,6,7,8],     ans:7   },
+    { q:'8 − 3 = ?',     opts:[4,5,6,7],     ans:5   },
+    { q:'2 + 2 + 2 = ?', opts:[4,5,6,7],     ans:6   },
+  ]},
+  P2:{ ma:[
+    { q:'15 + 8 = ?',    opts:[21,22,23,24], ans:23  },
+    { q:'30 − 14 = ?',   opts:[14,15,16,17], ans:16  },
+    { q:'4 × 5 = ?',     opts:[16,18,20,22], ans:20  },
+  ]},
+  P3:{ ma:[
+    { q:'6 × 7 = ?',     opts:[40,42,44,46], ans:42  },
+    { q:'56 ÷ 8 = ?',    opts:[5,6,7,8],     ans:7   },
+    { q:'125 + 68 = ?',  opts:[191,192,193,194], ans:193 },
+  ]},
+};
+
+/* ══════════════ 3D CAT SVG ══════════════ */
+function cat3D(mood, sz){
+  sz = sz||160;
+
+  /* Per-mood eye shapes */
+  const eyes = {
+    happy:`
+      <path d="M33 62 Q39 54 45 62" stroke="#1a3a00" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <path d="M75 62 Q81 54 87 62" stroke="#1a3a00" stroke-width="3.2" fill="none" stroke-linecap="round"/>`,
+    excited:`
+      <circle cx="39" cy="60" r="9.5" fill="url(#rg-iris)"/>
+      <ellipse cx="40" cy="62" rx="5.5" ry="6.5" fill="#0a1500"/>
+      <circle cx="36" cy="57" r="3" fill="rgba(255,255,255,0.92)"/>
+      <circle cx="43" cy="64" r="1.4" fill="rgba(255,255,255,0.55)"/>
+      <circle cx="79" cy="60" r="9.5" fill="url(#rg-iris)"/>
+      <ellipse cx="80" cy="62" rx="5.5" ry="6.5" fill="#0a1500"/>
+      <circle cx="76" cy="57" r="3" fill="rgba(255,255,255,0.92)"/>
+      <circle cx="83" cy="64" r="1.4" fill="rgba(255,255,255,0.55)"/>`,
+    thinking:`
+      <path d="M33 62 Q39 56 45 62" stroke="#1a3a00" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="79" cy="60" r="8" fill="url(#rg-iris)"/>
+      <ellipse cx="80" cy="61" rx="4.5" ry="5.5" fill="#0a1500"/>
+      <circle cx="77" cy="57" r="2.5" fill="rgba(255,255,255,0.9)"/>
+      <circle cx="83" cy="63" r="1.2" fill="rgba(255,255,255,0.5)"/>`,
+    proud:`
+      <path d="M33 64 Q39 56 45 64" stroke="#1a3a00" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <path d="M75 64 Q81 56 87 64" stroke="#1a3a00" stroke-width="3.2" fill="none" stroke-linecap="round"/>`,
+    encouraging:`
+      <circle cx="39" cy="61" r="8.5" fill="url(#rg-iris)"/>
+      <ellipse cx="40" cy="62" rx="5" ry="6" fill="#0a1500"/>
+      <circle cx="36" cy="58" r="2.8" fill="rgba(255,255,255,0.9)"/>
+      <circle cx="43" cy="64" r="1.3" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="79" cy="61" r="8.5" fill="url(#rg-iris)"/>
+      <ellipse cx="80" cy="62" rx="5" ry="6" fill="#0a1500"/>
+      <circle cx="76" cy="58" r="2.8" fill="rgba(255,255,255,0.9)"/>
+      <circle cx="83" cy="64" r="1.3" fill="rgba(255,255,255,0.5)"/>`,
+  };
+
+  const mouths = {
+    happy:`<path d="M47 79 Q60 90 73 79" stroke="#882040" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    excited:`<path d="M45 79 Q60 95 75 79" stroke="#882040" stroke-width="3" fill="#FFB0B8" stroke-linecap="round"/>`,
+    thinking:`<path d="M50 79 Q60 83 70 78" stroke="#882040" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+    proud:`<path d="M46 79 Q60 92 74 79" stroke="#882040" stroke-width="3" fill="#FFB0B8" stroke-linecap="round"/>`,
+    encouraging:`<path d="M48 79 Q60 88 72 79" stroke="#882040" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  };
+
+  const extras = {
+    happy:``,
+    excited:`<text x="88" y="32" font-size="16" opacity="0.9">✨</text>
+             <text x="5"  y="38" font-size="14" opacity="0.8">⭐</text>`,
+    thinking:`<text x="82" y="28" font-size="18">🤔</text>`,
+    proud:`<text x="85" y="30" font-size="16" opacity="0.9">⭐</text>`,
+    encouraging:`<text x="84" y="32" font-size="16">💪</text>`,
+  };
+
+  const eyeLayer = eyes[mood]||eyes.happy;
+  /* For happy/proud/thinking, add full iris under the path */
+  const irisUnder = (mood==='happy'||mood==='proud')
+    ? `<circle cx="39" cy="60" r="8" fill="url(#rg-iris)"/>
+       <ellipse cx="40" cy="61" rx="4.5" ry="5.5" fill="#0a1500"/>
+       <circle cx="36" cy="57" r="2.6" fill="rgba(255,255,255,0.88)"/>
+       <circle cx="43" cy="64" r="1.2" fill="rgba(255,255,255,0.5)"/>
+       <circle cx="79" cy="60" r="8" fill="url(#rg-iris)"/>
+       <ellipse cx="80" cy="61" rx="4.5" ry="5.5" fill="#0a1500"/>
+       <circle cx="76" cy="57" r="2.6" fill="rgba(255,255,255,0.88)"/>
+       <circle cx="83" cy="64" r="1.2" fill="rgba(255,255,255,0.5)"/>`
+    : (mood==='thinking'
+    ? `<circle cx="39" cy="62" r="8" fill="url(#rg-iris)"/>
+       <ellipse cx="40" cy="63" rx="4.5" ry="5.5" fill="#0a1500"/>
+       <circle cx="36" cy="59" r="2.5" fill="rgba(255,255,255,0.88)"/>`
+    : '');
+
+  return `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}">
+  <defs>
+    <radialGradient id="rg-body" cx="32%" cy="26%" r="70%">
+      <stop offset="0%"   stop-color="#FFE8A8"/>
+      <stop offset="30%"  stop-color="#F4A040"/>
+      <stop offset="75%"  stop-color="#C07028"/>
+      <stop offset="100%" stop-color="#7A3A00"/>
+    </radialGradient>
+    <radialGradient id="rg-face" cx="38%" cy="34%" r="58%">
+      <stop offset="0%"   stop-color="#FFD888"/>
+      <stop offset="55%"  stop-color="#E09038"/>
+      <stop offset="100%" stop-color="#B06020"/>
+    </radialGradient>
+    <radialGradient id="rg-ear" cx="30%" cy="28%" r="72%">
+      <stop offset="0%"   stop-color="#E09038"/>
+      <stop offset="100%" stop-color="#7A3A00"/>
+    </radialGradient>
+    <radialGradient id="rg-iear" cx="40%" cy="38%" r="62%">
+      <stop offset="0%"   stop-color="#FFCABF"/>
+      <stop offset="100%" stop-color="#FF6878"/>
+    </radialGradient>
+    <radialGradient id="rg-iris" cx="38%" cy="34%" r="62%">
+      <stop offset="0%"   stop-color="#98E048"/>
+      <stop offset="45%"  stop-color="#56A018"/>
+      <stop offset="100%" stop-color="#1A5005"/>
+    </radialGradient>
+    <radialGradient id="rg-nose" cx="34%" cy="28%" r="68%">
+      <stop offset="0%"   stop-color="#FFBAC0"/>
+      <stop offset="100%" stop-color="#E03055"/>
+    </radialGradient>
+    <radialGradient id="rg-blush" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="rgba(255,140,140,0.55)"/>
+      <stop offset="100%" stop-color="rgba(255,140,140,0)"/>
+    </radialGradient>
+    <radialGradient id="rg-spec" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.78)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <filter id="f-drop" x="-25%" y="-20%" width="150%" height="145%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="rgba(0,0,25,0.6)"/>
+    </filter>
+    <filter id="f-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+      <feComposite in="SourceGraphic" in2="b" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Ground shadow -->
+  <ellipse cx="60" cy="117" rx="30" ry="5" fill="rgba(0,0,30,0.45)"/>
+
+  <!-- Ears (behind head) -->
+  <ellipse cx="27" cy="33" rx="16" ry="19" fill="url(#rg-ear)" transform="rotate(-14,27,33)"/>
+  <ellipse cx="27" cy="35" rx="9"  ry="12" fill="url(#rg-iear)" transform="rotate(-14,27,33)"/>
+  <ellipse cx="93" cy="33" rx="16" ry="19" fill="url(#rg-ear)" transform="rotate(14,93,33)"/>
+  <ellipse cx="93" cy="35" rx="9"  ry="12" fill="url(#rg-iear)" transform="rotate(14,93,33)"/>
+
+  <!-- Head sphere -->
+  <circle cx="60" cy="65" r="46" fill="url(#rg-body)" filter="url(#f-drop)"/>
+
+  <!-- Face disc (projects forward) -->
+  <ellipse cx="62" cy="68" rx="34" ry="31" fill="url(#rg-face)" opacity="0.88"/>
+
+  <!-- Forehead stripes -->
+  <path d="M50 35 Q54 29 58 35" stroke="#A04810" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <path d="M56 33 Q60 27 64 33" stroke="#A04810" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.55"/>
+  <path d="M62 35 Q66 29 70 35" stroke="#A04810" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Ambient occlusion under eyes -->
+  <ellipse cx="39" cy="62" rx="11" ry="9" fill="rgba(80,30,0,0.18)"/>
+  <ellipse cx="79" cy="62" rx="11" ry="9" fill="rgba(80,30,0,0.18)"/>
+
+  <!-- Iris layer (below mood path for happy/proud) -->
+  ${irisUnder}
+
+  <!-- Mood eyes (paths on top for happy/proud, or full circles for others) -->
+  ${eyeLayer}
+
+  <!-- Nose -->
+  <path d="M56 74 Q60 70 64 74 Q62 78 60 78.5 Q58 78 56 74 Z" fill="url(#rg-nose)"/>
+  <path d="M56 74 Q58 72 60 73 Q62 72 64 74"
+        fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="0.8"/>
+
+  <!-- Mouth -->
+  ${mouths[mood]||mouths.happy}
+
+  <!-- Cheeks (subsurface scattering) -->
+  <ellipse cx="26" cy="77" rx="14" ry="10" fill="url(#rg-blush)"/>
+  <ellipse cx="94" cy="77" rx="14" ry="10" fill="url(#rg-blush)"/>
+
+  <!-- Whiskers -->
+  <line x1="6"  y1="73" x2="48" y2="76" stroke="rgba(255,255,235,0.65)" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="6"  y1="79" x2="48" y2="79" stroke="rgba(255,255,235,0.65)" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="8"  y1="85" x2="48" y2="82" stroke="rgba(255,255,235,0.65)" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="72" y1="76" x2="114" y2="73" stroke="rgba(255,255,235,0.65)" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="72" y1="79" x2="114" y2="79" stroke="rgba(255,255,235,0.65)" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="72" y1="82" x2="112" y2="85" stroke="rgba(255,255,235,0.65)" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- Main specular highlight (soft, large) -->
+  <ellipse cx="42" cy="38" rx="15" ry="11" fill="url(#rg-spec)" transform="rotate(-20,42,38)" opacity="0.75"/>
+  <!-- Sharp specular -->
+  <ellipse cx="37" cy="33" rx="6"  ry="4"  fill="rgba(255,255,255,0.52)" transform="rotate(-15,37,33)"/>
+
+  <!-- Extras -->
+  ${extras[mood]||''}
+</svg>`;
+}
+
+function setCat(id, mood, sz){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = cat3D(mood, sz);
+}
+
+function setWiggle(id, mood, sz){
+  setCat(id, mood, sz);
+  const el = document.getElementById(id);
+  el.classList.remove('cat-bounce','cat-wiggle');
+  void el.offsetWidth;
+  el.classList.add('cat-wiggle');
+  setTimeout(()=>{ el.classList.remove('cat-wiggle'); el.classList.add('cat-bounce'); }, 2200);
+}
+
+/* ══════════════ SCREEN TRANSITIONS ══════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    if(s.classList.contains('active')){
+      s.classList.add('exit'); s.classList.remove('active');
+      setTimeout(()=>s.classList.remove('exit'), 380);
+    }
+  });
+  setTimeout(()=>document.getElementById(id).classList.add('active'), 170);
+}
+
+/* ══════════════ STAR BURST ══════════════ */
+function burst(btn){
+  const r = btn.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'star-burst'; el.textContent = '⭐';
+  el.style.left = (r.left + r.width/2 - 15)+'px';
+  el.style.top  = (r.top + r.height/2)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 950);
+}
+
+/* ══════════════ FLOW ══════════════ */
+function selectGrade(g){
+  S.grade = g; S.stars = 0;
+  const lbl = {P1:'小一',P2:'小二',P3:'小三'};
+  document.getElementById('b-grade').textContent = lbl[g]+' 同學 👋';
+  document.getElementById('b-home').textContent  = lbl[g]+'同學，今日想練習咩？😸';
+  document.getElementById('st-home').textContent = '0';
+  setWiggle('c-welcome','excited',170);
+  setCat('c-home','happy',140);
+  setTimeout(()=>showScreen('s-home'), 420);
+}
+
+const CS = {ch:'中文',en:'英文',gs:'常識'};
+
+function pickSubject(sub){
+  if(sub !== 'ma'){
+    document.getElementById('b-home').textContent = CS[sub]+'練習好快就嚟喇！不如我哋先試試數學？😸';
+    setWiggle('c-home','encouraging',140);
+    return;
+  }
+  const lbl = {P1:'小一',P2:'小二',P3:'小三'};
+  document.getElementById('q-icon').textContent  = '🔢';
+  document.getElementById('q-title').textContent = '數學大冒險';
+  document.getElementById('q-desc').innerHTML    = lbl[S.grade]+' 程度 · 共 3 條題目<br>每答啱一題就得 ⭐ 一粒！';
+  document.getElementById('b-quest').textContent = '準備好數學大冒險喇！💪';
+  setCat('c-quest','excited',140);
+  showScreen('s-quest');
+}
+
+function startActivity(){
+  S.qIdx = 0; S.correct = 0;
+  S.questions = QB[S.grade].ma;
+  renderQ();
+  showScreen('s-act');
+}
+
+function renderQ(){
+  const q = S.questions[S.qIdx];
+  /* progress */
+  document.getElementById('prog').innerHTML =
+    S.questions.map((_,i)=>{
+      let c = 'pdot';
+      if(i < S.qIdx) c += ' done';
+      if(i === S.qIdx) c += ' current';
+      return `<div class="${c}"></div>`;
+    }).join('');
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('st-act').textContent = S.stars;
+  setCat('c-act','thinking',110);
+  document.getElementById('b-act').textContent = '你諗吓先～🤔';
+  document.getElementById('ans').innerHTML =
+    q.opts.map(o=>`<button class="btn abtn" onclick="checkAns(${o},this)">${o}</button>`).join('');
+}
+
+function checkAns(v, btn){
+  const q = S.questions[S.qIdx];
+  document.querySelectorAll('.abtn').forEach(b=>b.disabled=true);
+
+  if(v === q.ans){
+    btn.classList.add('correct');
+    S.stars++; S.correct++;
+    document.getElementById('st-act').textContent  = S.stars;
+    document.getElementById('st-home').textContent = S.stars;
+    setWiggle('c-act','excited',110);
+    document.getElementById('b-act').textContent = '叻叻呀！答啱咗！🎉';
+    burst(btn);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.abtn').forEach(b=>{
+      if(parseInt(b.textContent)===q.ans) b.classList.add('correct');
+    });
+    setCat('c-act','encouraging',110);
+    document.getElementById('b-act').textContent = `係 ${q.ans} 呀！唔緊要，繼續努力！💪`;
+  }
+
+  setTimeout(()=>{
+    S.qIdx++;
+    if(S.qIdx < S.questions.length) renderQ();
+    else showResult();
+  }, 1950);
+}
+
+function showResult(){
+  const c=S.correct, t=S.questions.length;
+  let badge, headline, bubble, mood;
+  if(c===t){
+    badge='🏆'; headline='全部答啱！超級棒！';
+    bubble='你真係好叻！奇奇好開心！🎉'; mood='proud';
+  } else if(c>=2){
+    badge='🌟'; headline=`答啱 ${c} 題，做得好！`;
+    bubble='再練習幾次就完美喇！加油！'; mood='happy';
+  } else {
+    badge='💪'; headline='繼續努力，你可以嘅！';
+    bubble='唔緊要！奇奇陪你一齊學！😸'; mood='encouraging';
+  }
+  document.getElementById('r-badge').textContent    = badge;
+  document.getElementById('r-headline').textContent = headline;
+  document.getElementById('b-result').textContent   = bubble;
+  document.getElementById('r-stars').textContent    = '⭐'.repeat(c)+'🔘'.repeat(t-c);
+  setCat('c-result', mood, 160);
+  showScreen('s-result');
+}
+
+function goHome(){
+  setCat('c-home','happy',140);
+  document.getElementById('b-home').textContent = '今日想練習咩？😸';
+  showScreen('s-home');
+}
+
+/* ══════════════ INIT ══════════════ */
+setCat('c-welcome','happy',170);
+setCat('c-home',   'happy',140);
+setCat('c-quest',  'excited',140);
+setCat('c-act',    'thinking',110);
+setCat('c-result', 'proud',160);
+
+document.getElementById('c-welcome').classList.add('cat-bounce');
+document.getElementById('c-home').classList.add('cat-bounce');
+document.getElementById('c-quest').classList.add('cat-bounce');
+</script>
+</body>
+</html>
