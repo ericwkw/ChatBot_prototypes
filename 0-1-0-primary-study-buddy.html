@@ -486,7 +486,7 @@
     <div class="gap8"></div>
     <div class="quest-title-big" id="quest-title">數學大冒險</div>
     <div class="gap8"></div>
-    <p class="quest-desc-text" id="quest-desc">一共有 3 條題目<br>每答對一題就得 ⭐ 一粒！</p>
+    <p class="quest-desc-text" id="quest-desc">一共有 3 條題目<br>每答啱一題就得 ⭐ 一粒！</p>
 
     <div class="spacer"></div>
 
@@ -723,7 +723,7 @@ const COMING_SOON = { chinese: '中文', english: '英文', gs: '常識' };
 function selectSubject(sub) {
   if (sub !== 'math') {
     const name = COMING_SOON[sub];
-    document.getElementById('home-bubble').textContent = name + '練習快啲嚟喇！先試試數學！😸';
+    document.getElementById('home-bubble').textContent = name + '練習好快就嚟喇！不如我哋先試試數學？😸';
     setCatWiggle('cat-home', 'encouraging', 140);
     return;
   }
@@ -733,7 +733,7 @@ function selectSubject(sub) {
   document.getElementById('quest-icon').textContent  = '🔢';
   document.getElementById('quest-title').textContent = '數學大冒險';
   document.getElementById('quest-desc').innerHTML =
-    labels[state.grade] + ' 程度 · 共 3 條題目<br>每答對一題得 ⭐ 一粒！';
+    labels[state.grade] + ' 程度 · 共 3 條題目<br>每答啱一題就得 ⭐ 一粒！';
   setCat('cat-quest', 'excited', 140);
   showScreen('screen-quest');
 }
